@@ -1,0 +1,15 @@
+strict=1
+
+namespace Book
+
+final class Book implements BookInterface:
+    public int id
+
+    final public __construct(int id):
+        this.id = id
+
+    final public getId(): int
+        return this.id
+
+    final public toString(): string
+        return sprintf('ID:%d, this.id)

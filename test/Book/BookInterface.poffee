@@ -1,0 +1,6 @@
+strict=1
+
+namespace Book
+
+interface BookInterface:
+    public toString(): string

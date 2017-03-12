@@ -1,0 +1,3 @@
+use Book.*
+
+$book = new Book(1, 'Hello Poffee!', 'Kerem Güneş')
