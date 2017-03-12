@@ -26,6 +26,7 @@ abstract class Node
     protected $name; // class, function, for, foreach ...
     protected $value;
     protected $attributes = [];
+    protected $childNodes = [];
 
     final public function __construct(Parser $parser, string $name, string $value = null,
         string $file, int $line, array $attributes = null)
@@ -47,6 +48,26 @@ abstract class Node
     final public function getAttribute(string $name)
     {
         return ($this->attributes[$name] ?? null);
+    }
+
+    final public function addChild(Node $node): self
+    {
+        $this->childNodes[] = $node;
+        return $this;
+    }
+    final public function removeChild(Node $node): self
+    {
+        foreach ($this->childNodes as $i => $childNode) {
+            if ($childNode == $node) {
+                unset($this->childNodes[$i]);
+                break;
+            }
+        }
+        return $this;
+    }
+    final public function hasChildNodes(): bool
+    {
+        return !empty($this->childNodes);
     }
 
     abstract public function render();
