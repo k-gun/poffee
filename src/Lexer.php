@@ -67,15 +67,14 @@ final class Lexer
     public function doSubscan($line, $input)
     {
         // if (strlen($input) < 3) return;
-
-        // $this->line = $line;
-        // $pattern = '~
-        //     (?:(\s+)?([a-z_][a-z0-9_]*)\s*(?=\((.*)\)))                  # function
-        // ~ix';
-        // $matches = $this->getMatches($pattern, $input);
-        // // preg_match_all($pattern, $input, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
-        // // prd($matches);
-        // return $this->generateTokens($matches);
+        $this->line = $line;
+        $pattern = '~
+            (?:(\s+)?([a-z_][a-z0-9_]*)\s*(?=\((.*)\)))                  # function
+        ~ix';
+        $matches = $this->getMatches($pattern, $input);
+        // preg_match_all($pattern, $input, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
+        // prd($matches);
+        return $this->generateTokens($matches);
     }
 
     public function generateTokens(array $matches)
@@ -91,24 +90,31 @@ final class Lexer
             $length = strlen($value);
             $start = $match[1]; $end = $start + $length;
 
-            $tokens->add(new Token([
+            $tokens->add([
                 'value' => $value, 'type' => $type,
                 'line' => $this->line, 'indent' => $indent,
                 'start' => $start, 'end' => $end, 'length' => $length,
-                'tokens' => null,
-            ]));
+                'children' => null,
+            ]);
         }
 
-        if ($tokens->count()) {
+        if (!$tokens->isEmpty()) {
             // burda next prev vs isleri iste...
+            $lexer = new Lexer();
             while ($token = $tokens->getNext()) {
-                pre($token->type);
+                if ($token->hasPrev()) {
+                    if ($token->type == T_ASSIGN) {
+                        $token->getPrev()->type = T_IDENTIFIER;
+                    }
+                    if ($token->type == T_NONE) {
+                        $token->children = $lexer->doSubscan($token->line, $token->value);
+                    }
+                }
             }
-            pre($tokens->pointer());
         }
-        prd($tokens);
-        die;
-        return $tokens->toArray();
+        // prd($tokens);
+        // die;
+        return $tokens;
     }
 
     public function getType($value)
@@ -145,66 +151,88 @@ final class Lexer
 
 class Token
 {
-    public function __construct(array $data)
+    public function __construct(Tokens $tokens, array $data)
     {
+        $this->tokens = $tokens;
         foreach ($data as $key => $value) {
             $this->{$key} = $value;
         }
     }
+    public function hasPrev()
+    {
+        return $this->tokens->has($this->index - 1);
+    }
+    public function hasNext()
+    {
+        return $this->tokens->has($this->index + 1);
+    }
+    public function getPrev()
+    {
+        return $this->tokens->get($this->index - 1);
+    }
+    public function getNext()
+    {
+        return $this->tokens->get($this->index + 1);
+    }
 }
 
-class Tokens implements \Countable, \IteratorAggregate
+class Tokens
 {
     private $tokens = [];
-    private $count = 0;
-    private $pointer = 0;
+    private $tokensIndex = 0;
+    private $tokensIndexPointer = 0;
+    private static $first = true;
 
     public function __construct()
     {}
 
-    public function add(Token $token)
+    public function add(array $data)
     {
-        $this->tokens[$this->count++] = $token;
-    }
-    public function get(int $pointer = null)
-    {
-        return $this->tokens[$pointer ?? $this->pointer] ?? null;
+        $token = new Token($this, $data);
+        $token->index = $this->tokensIndex;
+        $this->tokens[$this->tokensIndex] = $token;
+        $this->tokensIndex++;
     }
 
-    public function getPrev()
+    public function has(int $i)
     {
-        return $this->get($this->pointer--);
-    }
-    public function hasPrev()
-    {
-        return isset($this->tokens[$this->pointer - 1]);
-    }
-    public function getNext()
-    {
-        return $this->get($this->pointer++);
+        return isset($this->tokens[$i]);
     }
     public function hasNext()
     {
-        return isset($this->tokens[$this->pointer]);
+        return $this->has($this->tokensIndexPointer);
+    }
+
+    public function get(int $i)
+    {
+        return $this->tokens[$i] ?? null;
+    }
+    public function getNext()
+    {
+        return $this->get($this->tokensIndexPointer++);
+    }
+
+    public function getTokens()
+    {
+        return $this->tokens;
+    }
+    public function getTokensIndex()
+    {
+        return $this->tokensIndex;
+    }
+    public function getTokensIndexPointer()
+    {
+        return $this->tokensIndexPointer;
     }
 
     public function reset()
     {
-        $this->pointer = 0;
+        $this->tokensIndexPointer = 0;
     }
-    public function count()
+    public function isEmpty()
     {
-        return $this->count;
+        return empty($this->tokens);
     }
-    public function pointer()
-    {
-        return $this->pointer;
-    }
-    public function getIterator()
-    {
-        return new \ArrayIterator($this->tokens);
-    }
-
     public function toArray()
     {
         return array_filter($this->tokens);

@@ -62,7 +62,11 @@ function _p($arg) {
     if ($arg === null) $arg = 'NULL';
     elseif ($arg === true) $arg = 'TRUE';
     elseif ($arg === false) $arg = 'FALSE';
-    return sprintf("%s\n", preg_replace('[(\w+):.*?\:private]', '\\1:private', print_r($arg, true)));
+    return sprintf("%s\n", preg_replace(
+        ['~\[(\w+):.*?\:private\]~', '~Object\s*\*RECURSION\*~'],
+        ['[\\1:private]', '{...}'],
+        print_r($arg, true)
+    ));
 }
 function pre(...$args) {
     $print = '';
@@ -73,6 +77,9 @@ function pre(...$args) {
 }
 function prd($arg) {
     print _p($arg); die;
+}
+function prf($arg, $f = 'ta') {
+    file_put_contents($f, _p($arg));
 }
 
 function autoload() {
