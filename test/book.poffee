@@ -1,2 +1,1 @@
-    use Book.*
-    use foo.*
+c = list()

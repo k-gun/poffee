@@ -13,8 +13,10 @@ class Parser
     public function parse($file)
     {
         $file = file($file);
+        $tokens = [];
         foreach ($file as $i => $value) {
-            $this->lexer->setInput($i + 1, $value);
+            $tokens = array_merge($tokens, $this->lexer->doScan($i + 1, $value));
         }
+        pre($tokens);
     }
 }

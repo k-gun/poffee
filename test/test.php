@@ -14,9 +14,19 @@ $p = '~
 
 $parser = new Poffee\Parser();
 $parser->parse('book.poffee');
-pre($parser);
+// pre($parser);
 
 
+// pre(defined("T_SPACE"));
+// // $cs = get_defined_constants();
+// $cs = array_filter(get_defined_constants(), function($k) {
+//     return substr($k, 0, 2) == 'T_';
+// }, ARRAY_FILTER_USE_KEY);
+// $cv = "";
+// foreach ($cs as $key => $value) {
+//     $cv .= "[$key] => $value\n";
+// }
+// file_put_contents('ast', $cv);
 
 
 
