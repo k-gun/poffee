@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1); namespace Poffee\Node;
 
+use Poffee\Parser;
 use Poffee\NodeException;
 
 class IfNode extends Condition
@@ -11,6 +12,14 @@ class IfNode extends Condition
             throw new NodeException("Conditions must be end with ':' sign!",
                 $this->file, $this->line);
         }
+
+        $this->value = chop($this->value, ':');
+        $this->value = Parser::updateVariables($this->value);
+        $this->value = Parser::updateConditions($this->value);
+
+        pre($this->value);
+        pre($this->toString());
+        die;
 
         $this->type = self::TYPE_CONDITION;
 

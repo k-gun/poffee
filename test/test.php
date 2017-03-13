@@ -1,10 +1,20 @@
 <?php autoload();
 
-$poffee = new Poffee\Poffee(__dir__);
-$parser = $poffee->parse('book.poffee');
+$s = file_get_contents('book.poffee');
+$f = PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_OFFSET_CAPTURE;
+$p = '~
+     ((use)\s*([^\r\n]+))
+    |(([a-z][a-z0-9_]+)\s*=\s*(.+))
+    |((if|else|elseif)\s*(.*)\s*(:))
+    |((\s{4})([a-z][a-z0-9_]+)\s*(.+))
+~xi';
+// $m = preg_split($p, $s, -1, $f);
+// prd($m);
 
+
+$parser = new Poffee\Parser();
+$parser->parse('book.poffee');
 pre($parser);
-pre($parser->toString());
 
 
 
@@ -17,7 +27,28 @@ pre($parser->toString());
 
 
 
-function _pre($arg) {
+
+
+
+
+// $poffee = new Poffee\Poffee(__dir__);
+// $parser = $poffee->parse('book.poffee');
+
+// pre($parser);
+// pre($parser->toString());
+
+
+
+
+
+
+
+
+
+
+
+
+function _p($arg) {
     if ($arg === null) $arg = 'NULL';
     elseif ($arg === true) $arg = 'TRUE';
     elseif ($arg === false) $arg = 'FALSE';
@@ -26,9 +57,12 @@ function _pre($arg) {
 function pre(...$args) {
     $print = '';
     foreach ($args as $arg) {
-        $print .= _pre($arg);
+        $print .= _p($arg);
     }
     print $print;
+}
+function prd($arg) {
+    print _p($arg); die;
 }
 
 function autoload() {

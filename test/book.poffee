@@ -1,3 +1,2 @@
-use Book.*
-
-$book = new Book(1, 'Hello Poffee!', 'Kerem Güneş')
+    use Book.*
+    use foo.*

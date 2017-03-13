@@ -8,8 +8,8 @@ final class Book implements BookInterface:
     final public __construct(int id):
         this.id = id
 
-    final public getId(): int
-        return this.id
+    final public hasId(): bool
+        return this.id is not null
 
     final public toString(): string
         return sprintf('ID:%d, this.id)
