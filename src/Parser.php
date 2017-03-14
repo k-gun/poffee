@@ -22,8 +22,8 @@ class Parser
     }
 }
 
-function clear($tokens) {
-    // @tmp
+// @tmp?
+function clear($tokens) { //return $tokens;
     foreach ($tokens as &$token) {
         // $token->tokens = 'Poffee\Tokens {...}';
         unset($token->tokens);

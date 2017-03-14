@@ -23,6 +23,7 @@ const T_ELSE_IF = 'T_ELSE_IF';
 const T_IDENTIFIER = 'T_IDENTIFIER';
 const T_PARENTHESIS_BLOCK = 'T_PARENTHESIS_BLOCK';
 
+const T_NULL = 'T_NULL';
 const T_STRING = 'T_STRING';
 const T_STRING_VAR = 'T_STRING_VAR';
 const T_NUMBER = 'T_NUMBER';
@@ -40,7 +41,7 @@ const T_FUNCTION_CALL = 'T_FUNCTION_CALL';
 // 'protected', 'public', 'require', 'require_once', 'return', 'static', 'switch', 'throw',
 // 'trait', 'try', 'unset', 'use', 'var', 'while', 'xor', 'yield'];
 const KEYWORDS_OBJECT = ['class', 'interface', 'trait', 'function'];
-const KEYWORDS_MODIFIER = ['abstract', 'final', 'static', 'public', 'private', 'protected'];
+const KEYWORDS_MODIFIER = ['abstract', 'final', 'static', 'public', 'private', 'protected', 'extends', 'implements'];
 const KEYWORDS_FUNCTION = ['declare', 'die', 'echo', 'empty', 'eval', 'exit',
     'include', 'include_once', 'isset', 'list', 'print', 'require', 'require_once', 'unset',
     '__halt_compiler'];
@@ -67,16 +68,16 @@ class Lexer
              (?:(\s+)?//\s*([^\r\n]+))                  # comment
             |(?:(\s+)?(use)\s*([^\r\n]+))               # use
             |(?:(\s+)?(const)\s+([a-z_][a-z0-9_]*)\s*(=)\s*(.+))   # const
-            |(?:(\s+)?(abstract|final|static)?\s*(class)\s+(\w+)(:)) # class
+            |(?:(\s+)?(abstract|final|static)?\s*(class)\s+(\w+)\s*
+                (?:(extends)\s+(\w+)\s*)?(?:(implements)\s+(\w+)\s*)?(:)) # class
+            |(?:(\s+)?(var|public|private|protected)\s+(\w+)(?:\s*(=)\s*([^\s]+))?) # property
             |(?:(\s+)?(return)\s+(.+))                          # return
             |(?:(\s+)?(if|else|else\s*if)\s+(.+)(:))         # condition
-            |(?:(\s+)?([a-z_][a-z0-9_]*)\s*(=)\s*(.+))   # assign
+            |(?:(\s+)?([a-z_][a-z0-9_]*)\s*(=)\s*([^\s]+))   # assign
             #|(?:(\s+)?('. join('|', KEYWORDS_FUNCTION) .')\s*\((.+)\))
             #|(?:(\s+)?\s+|(.))                          # any
         ~ix';
         $matches = $this->getMatches($pattern, $input);
-        // preg_match($pattern, $input, $matches, PREG_OFFSET_CAPTURE); $matches = array_filter($matches, function($match) { return $match[1] > -1; });
-        // pre($matches);
         return $this->generateTokens($matches);
     }
 
@@ -126,32 +127,22 @@ class Lexer
             case self::$space:  return T_SPACE;
             case self::$indent: return T_INDENT;
             case self::$eol:    return T_EOL;
-
             case '=':           return T_ASSIGN;
             case ':':           return T_COLON;
             case '<': case '>': case '!':
             case '%': case '*': case '/':
             case '+': case '-': case '|':
             case '^': case '~': return T_OPERATOR;
-
-            // case 'use':         return T_USE;
-            // case 'const':       return T_CONST;
-            // case 'class':       return T_CLASS;
-            // case 'return':      return T_RETURN;
-            // case 'true':
-            // case 'false':      return T_BOOLEAN;
-            // case 'if':         return T_IF;
-
             default:
                 if (in_array($value, KEYWORDS_OBJECT)) {
                     return T_OBJECT;
                 } elseif (in_array($value, KEYWORDS_MODIFIER)) {
                     return T_MODIFIER;
                 }
-                // $name = strtoupper("t_{$value}");
-                // if (defined($name)) {
-                //     return $name; // @tmp // constant($name);
-                // }
+                $name = strtoupper("t_{$value}");
+                if (defined(__namespace__ .'\\'. $name)) {
+                    return $name; // @tmp // constant($name);
+                }
 
                 $fChar = substr($value, 0, 1); $lChar = substr($value, -1);
                 if ($fChar == "'" && $lChar == "'") {
@@ -255,6 +246,9 @@ class Tokens
     public function __construct(array $tokens = null)
     {
         if ($tokens) foreach ($tokens as $token) {
+            if (!is_array($token)) {
+                $token = $token->toArray();
+            }
             $this->add($token);
         }
     }

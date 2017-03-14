@@ -79,7 +79,8 @@ function prd($arg) {
     print _p($arg); die;
 }
 function prf($arg, $f = 'ta') {
-    file_put_contents($f, _p($arg));
+    // file_put_contents($f, _p($arg));
+    file_put_contents($f, json_encode($arg, JSON_PRETTY_PRINT));
 }
 
 function autoload() {
