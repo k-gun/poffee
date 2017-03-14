@@ -25,6 +25,8 @@ const T_PARENTHESIS_BLOCK = 'T_PARENTHESIS_BLOCK';
 
 const T_IDENTIFIER = 'T_IDENTIFIER';
 const T_IDENTIFIER_VAR = 'T_IDENTIFIER_VAR';
+const T_IDENTIFIER_OBJECT = 'T_IDENTIFIER_OBJECT';
+const T_IDENTIFIER_PROPERTY = 'T_IDENTIFIER_PROPERTY';
 
 const T_EXPRESSION = 'T_EXPRESSION';
 
@@ -84,7 +86,8 @@ class Lexer
 
     public function doScan($line, $input)
     {
-        $this->line = $line;
+        $lexer = new self(self::$indent);
+        $lexer->line = $line;
         $pattern = '~
              (?:(\s+)?//\s*([^\r\n]+))                    # comment
             |(?:(\s+)?(use)\s*([^\r\n]+))                     # use
@@ -99,22 +102,9 @@ class Lexer
             #|(?:(\s+)?('. join('|', KEYWORDS_FUNCTION) .')\s*\((.+)\))
             #|(?:(\s+)?\s+|(.))                          # any
         ~ix';
-        $matches = $this->getMatches($pattern, $input);
+        $matches = $lexer->getMatches($pattern, $input);
         pre($matches);
-        return $this->generateTokens($matches);
-    }
-
-    public function doSubscan($line, $input)
-    {
-        if (strlen($input) < 3) return;
-        $this->line = $line;
-        $pattern = '~
-             (?:(\s+)?([a-z_][a-z0-9_]*)\s*(?=\((.*)\)))
-            |(?:(\s+)?([^\s]+)\s*([\<\>\!\=\*/\+\-%\|\^\~]+)\s*(.+))
-        ~ix';
-        $matches = $this->getMatches($pattern, $input);
-        pre($matches);
-        return $this->generateTokens($matches);
+        return $lexer->generateTokens($matches);
     }
 
     public function generateTokens(array $matches)
@@ -124,8 +114,7 @@ class Lexer
             $value = $match[0];
             if ($value == self::$space) continue; // ?
             $length = strlen($value);
-            if (ctype_space($value) && $length >= self::$indentLength
-                    && $length % self::$indentLength == 0) {
+            if (ctype_space($value) && $length >= self::$indentLength && $length % self::$indentLength == 0) {
                 $type = T_INDENT;
             } else {
                 $type = $this->getType($value);
@@ -140,15 +129,16 @@ class Lexer
 
         $tokens = new Tokens($tokens);
         if (!$tokens->isEmpty()) {
+            $modifierFinal = $modifierAbstract = null;
             while ($token = $tokens->next()) {
+                // at first
                 if ($token->type == T_NONE) {
                     if (isValidExpression($token->value)) {
                         $token->type = T_EXPRESSION;
                     }
                 }
                 if ($token->type == T_EXPRESSION) {
-                    $lexer = new Lexer(self::$indent);
-                    $children = $lexer->doSubscan($token->line, $token->value);
+                    $children = $this->doScan($token->line, $token->value);
                     if ($children) {
                         if ($children->first->value != $token->value) {
                             $token->children = new Tokens($children->toArray());
@@ -164,23 +154,24 @@ class Lexer
                 }
                 if ($token->hasPrev()) {
                     $prev = $token->prev();
-                    if ($prev->type == T_NONE
-                            && ($token->type == T_OPERATOR || $token->type == T_OPERATOR_ASSIGN)) {
-                        $prev->type = T_IDENTIFIER_VAR;
+                    if ($token->value == 'extends') {
+                        $prev->type = T_IDENTIFIER_OBJECT;
                     }
-                    if ($token->type == T_NONE || $token->type == T_EXPRESSION) {
-                        // if ($prev->type == T_OBJECT /* class, function etc */
-                        //         || $prev->type == T_MODIFIER /* property */) {
-                        //     $token->type = T_IDENTIFIER;
-                        // }
+                    if ($prev->type == T_NONE &&
+                            ($token->type == T_OPERATOR || $token->type == T_OPERATOR_ASSIGN)) {
+                        $prev->type = T_IDENTIFIER_VAR;
                     }
                 }
                 if ($token->hasNext()) {
                     $next = $token->next();
-                    if ($next->type == T_NONE) {
-                        if (isValidIdentifier($next->value)) {
-                            $next->type = T_IDENTIFIER_VAR;
-                        } // else ??
+                    if ($token->value == 'extends' || $token->value == 'implements') {
+                        $next->type = T_IDENTIFIER_OBJECT;
+                    }
+                }
+                // at last
+                if ($token->type == T_NONE) {
+                    if (isValidIdentifier($token->value)) {
+                        $token->type = T_IDENTIFIER_VAR;
                     }
                 }
             }
