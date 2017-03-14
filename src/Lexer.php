@@ -6,37 +6,50 @@ const T_EOL = 'T_EOL'; // -1;
 const T_INDENT = 'T_INDENT'; // -2;
 const T_SPACE = 'T_SPACE'; // -3;
 
-const T_ASSIGN = 'T_ASSIGN'; // -10;
-const T_ASSIGN_NAME = 'T_ASSIGN_NAME'; // -11;
-const T_ASSIGN_VALUE = 'T_ASSIGN_VALUE'; // -12;
-const T_VAR = 'T_VAR'; // -13;
-const T_CONST = 'T_CONST'; // -14;
-const T_IDENTIFIER = 'T_IDENTIFIER'; // -15;
+const T_COLON = 'T_COLON';
+const T_ASSIGN = 'T_ASSIGN';
+const T_OPERATOR = 'T_OPERATOR';
 
-const T_STRING = 'T_STRING'; // -21;
-const T_STRING_VAR = 'T_STRING_VAR'; // -22;
-const T_NUMBER = 'T_NUMBER'; // -23;
+const T_VAR = 'T_VAR';
+const T_OBJECT = 'T_OBJECT';
+const T_MODIFIER = 'T_MODIFIER';
+const T_USE = 'T_USE';
+const T_CONST = 'T_CONST';
+const T_CLASS = 'T_CLASS';
+const T_RETURN = 'T_RETURN';
+const T_IF = 'T_IF';
+const T_ELSE = 'T_ELSE';
+const T_ELSE_IF = 'T_ELSE_IF';
+const T_IDENTIFIER = 'T_IDENTIFIER';
+const T_PARENTHESIS_BLOCK = 'T_PARENTHESIS_BLOCK';
 
-const T_FUNCTION = 'T_FUNCTION'; // -30;
-const T_FUNCTION_CALL = 'T_FUNCTION_CALL'; // -31;
+const T_STRING = 'T_STRING';
+const T_STRING_VAR = 'T_STRING_VAR';
+const T_NUMBER = 'T_NUMBER';
+const T_BOOLEAN = 'T_BOOLEAN';
 
+const T_FUNCTION = 'T_FUNCTION';
+const T_FUNCTION_CALL = 'T_FUNCTION_CALL';
 
-const KEYWORDS = ['__halt_compiler', 'abstract', 'and', 'array', 'as', 'break',
-'callable', 'case', 'catch', 'class', 'clone', 'const', 'continue', 'declare', 'default',
-'die', 'do', 'echo', 'else', 'elseif', 'empty', 'enddeclare', 'endfor', 'endforeach', 'endif',
-'endswitch', 'endwhile', 'eval', 'exit', 'extends', 'final', 'finally', 'for', 'foreach',
-'function', 'global', 'goto', 'if', 'implements', 'include', 'include_once', 'instanceof',
-'insteadof', 'interface', 'isset', 'list', 'namespace', 'new', 'or', 'print', 'private',
-'protected', 'public', 'require', 'require_once', 'return', 'static', 'switch', 'throw',
-'trait', 'try', 'unset', 'use', 'var', 'while', 'xor', 'yield'];
-const KEYWORDS_DECLARE = [''];
+// const KEYWORDS = ['__halt_compiler', 'abstract', 'and', 'array', 'as', 'break',
+// 'callable', 'case', 'catch', 'class', 'clone', 'const', 'continue', 'declare', 'default',
+// 'die', 'do', 'echo', 'else', 'elseif', 'empty', 'enddeclare', 'endfor', 'endforeach', 'endif',
+// 'endswitch', 'endwhile', 'eval', 'exit', 'extends', 'final', 'finally', 'for', 'foreach',
+// 'function', 'global', 'goto', 'if', 'implements', 'include', 'include_once', 'instanceof',
+// 'insteadof', 'interface', 'isset', 'list', 'namespace', 'new', 'or', 'print', 'private',
+// 'protected', 'public', 'require', 'require_once', 'return', 'static', 'switch', 'throw',
+// 'trait', 'try', 'unset', 'use', 'var', 'while', 'xor', 'yield'];
+const KEYWORDS_OBJECT = ['class', 'interface', 'trait', 'function'];
+const KEYWORDS_MODIFIER = ['abstract', 'final', 'static', 'public', 'private', 'protected'];
 const KEYWORDS_FUNCTION = ['declare', 'die', 'echo', 'empty', 'eval', 'exit',
     'include', 'include_once', 'isset', 'list', 'print', 'require', 'require_once', 'unset',
     '__halt_compiler'];
 const KEYWORDS_CONDITION = ['if', 'else', 'elseif', 'else if'];
 const KEYWORDS_LOOP = ['for', 'foreach', 'while'];
 
-final class Lexer
+function is_identifier($s) { return preg_match('~^[a-z_][a-z0-9_]*$~i', $s); }
+
+class Lexer
 {
     private static $space = ' ';
     private static $indent = '    ';
@@ -52,36 +65,43 @@ final class Lexer
         $this->line = $line;
         $pattern = '~
              (?:(\s+)?//\s*([^\r\n]+))                  # comment
-            #|(?:(\s+)?(use)\s*([^\r\n]+))               # use
-            #|(?:(\s+)?(if|else|elseif)\s*(.+:))         # condition
-            #|(?:(\s+)?(const)\s+([a-z_][a-z0-9_]*)\s*(=)\s*(.+))   # const
+            |(?:(\s+)?(use)\s*([^\r\n]+))               # use
+            |(?:(\s+)?(const)\s+([a-z_][a-z0-9_]*)\s*(=)\s*(.+))   # const
+            |(?:(\s+)?(abstract|final|static)?\s*(class)\s+(\w+)(:)) # class
+            |(?:(\s+)?(return)\s+(.+))                          # return
+            |(?:(\s+)?(if|else|else\s*if)\s+(.+)(:))         # condition
             |(?:(\s+)?([a-z_][a-z0-9_]*)\s*(=)\s*(.+))   # assign
-            |(?:(\s+)?('. join('|', KEYWORDS_FUNCTION) .')\s*\((.+)\))
+            #|(?:(\s+)?('. join('|', KEYWORDS_FUNCTION) .')\s*\((.+)\))
             #|(?:(\s+)?\s+|(.))                          # any
         ~ix';
         $matches = $this->getMatches($pattern, $input);
+        // preg_match($pattern, $input, $matches, PREG_OFFSET_CAPTURE); $matches = array_filter($matches, function($match) { return $match[1] > -1; });
         // pre($matches);
         return $this->generateTokens($matches);
     }
 
     public function doSubscan($line, $input)
     {
-        // if (strlen($input) < 3) return;
+        if (strlen($input) < 3) return;
         $this->line = $line;
         $pattern = '~
-            (?:(\s+)?([a-z_][a-z0-9_]*)\s*(?=\((.*)\)))                  # function
+             (?:(\s+)?([a-z_][a-z0-9_]*)\s*(?=\((.*)\)))
+            |(?:(\s+)?([a-z_][a-z0-9_]*)\s*(?=\((.+)\)))
+            |(?:(\s+)?([^\s]+)\s*([\<\>\!\=\*/\+\-%\|\^\~]+)\s*(.+))
         ~ix';
         $matches = $this->getMatches($pattern, $input);
-        // preg_match_all($pattern, $input, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
-        // prd($matches);
+        pre($matches);
         return $this->generateTokens($matches);
     }
 
     public function generateTokens(array $matches)
     {
-        $tokens = new Tokens();
+        $tokens = [];
         foreach ($matches as $match) {
             $value = $match[0];
+            if ($value == self::$space) {
+                continue;
+            }
             $indent = 0;
             if ($value[0] == ' ') {
                 $indent = strlen($value);
@@ -89,59 +109,98 @@ final class Lexer
             $type = $this->getType($value);
             $length = strlen($value);
             $start = $match[1]; $end = $start + $length;
-
-            $tokens->add([
+            $tokens[] = [
                 'value' => $value, 'type' => $type,
                 'line' => $this->line, 'indent' => $indent,
                 'start' => $start, 'end' => $end, 'length' => $length,
                 'children' => null,
-            ]);
+            ];
         }
-
-        if (!$tokens->isEmpty()) {
-            // burda next prev vs isleri iste...
-            $lexer = new Lexer();
-            while ($token = $tokens->getNext()) {
-                if ($token->hasPrev()) {
-                    if ($token->type == T_ASSIGN) {
-                        $token->getPrev()->type = T_IDENTIFIER;
-                    }
-                    if ($token->type == T_NONE) {
-                        $token->children = $lexer->doSubscan($token->line, $token->value);
-                    }
-                }
-            }
-        }
-        // prd($tokens);
-        // die;
-        return $tokens;
+        return $this->checkTypes($tokens);
     }
 
     public function getType($value)
     {
+        $value = strval($value);
         switch ($value) {
             case self::$space:  return T_SPACE;
             case self::$indent: return T_INDENT;
             case self::$eol:    return T_EOL;
+
             case '=':           return T_ASSIGN;
-            case 'use':         return T_USE;
-            case 'const':       return T_CONST;
+            case ':':           return T_COLON;
+            case '<': case '>': case '!':
+            case '%': case '*': case '/':
+            case '+': case '-': case '|':
+            case '^': case '~': return T_OPERATOR;
+
+            // case 'use':         return T_USE;
+            // case 'const':       return T_CONST;
+            // case 'class':       return T_CLASS;
+            // case 'return':      return T_RETURN;
+            // case 'true':
+            // case 'false':      return T_BOOLEAN;
+            // case 'if':         return T_IF;
+
             default:
-                $fChar = substr($value, 0, 1);
-                $lChar = substr($value, -1);
-                if ($lChar == "'" || $lChar == "'") {
+                if (in_array($value, KEYWORDS_OBJECT)) {
+                    return T_OBJECT;
+                } elseif (in_array($value, KEYWORDS_MODIFIER)) {
+                    return T_MODIFIER;
+                }
+                // $name = strtoupper("t_{$value}");
+                // if (defined($name)) {
+                //     return $name; // @tmp // constant($name);
+                // }
+
+                $fChar = substr($value, 0, 1); $lChar = substr($value, -1);
+                if ($fChar == "'" && $lChar == "'") {
                     return T_STRING;
-                } elseif ($lChar == '"' || $lChar == '"') {
+                } elseif ($fChar == '"' && $lChar == '"') {
                     return T_STRING_VAR;
                 } elseif (is_numeric($value)) {
                     return T_NUMBER;
-                // } elseif ($value) {
-                //     return T_FUNCTION_CALL;
+                } elseif ($fChar == '(' && $lChar == ')') {
+                    return T_PARENTHESIS_BLOCK;
                 }
         }
         return T_NONE;
     }
-
+    public function checkTypes(array $tokens)
+    {
+        $tokens = new Tokens($tokens);
+        if (!$tokens->isEmpty()) {
+            while ($token = $tokens->getNext()) {
+                if ($token->hasPrev()) {
+                    $prev = $token->prev;
+                    if ($token->type == T_ASSIGN) {
+                        $prev->type = T_IDENTIFIER;
+                    }
+                    if ($token->type == T_NONE) {
+                        $lexer = new Lexer();
+                        $children = $lexer->doSubscan($token->line, $token->value);
+                        if ($children) {
+                            if ($children->getFirst()->value != $token->value) {
+                                $token->children = new Tokens($children->toArray());
+                                while ($child = $token->children->getNext()) {
+                                    $next = $child->next;
+                                    if ($next && $next->type == T_OPERATOR &&
+                                        $child->type == T_NONE && is_identifier($child->value)) {
+                                        $child->type = T_IDENTIFIER;
+                                    }
+                                }
+                            }
+                        }
+                        if ($prev->type == T_OBJECT /* class, function etc */ ||
+                            $prev->type == T_MODIFIER /* property */) {
+                            $token->type = T_IDENTIFIER;
+                        }
+                    }
+                }
+            }
+        }
+        return $tokens;
+    }
     public function getMatches($pattern, $input)
     {
         return preg_split($pattern, $input, -1,
@@ -157,6 +216,15 @@ class Token
         foreach ($data as $key => $value) {
             $this->{$key} = $value;
         }
+    }
+    public function __get($name)
+    {
+        if ($name == 'prev') return $this->getPrev();
+        if ($name == 'next') return $this->getNext();
+    }
+    public function __set($name, $value)
+    {
+        $this->{$name} = $value;
     }
     public function hasPrev()
     {
@@ -174,6 +242,10 @@ class Token
     {
         return $this->tokens->get($this->index + 1);
     }
+    public function toArray()
+    {
+        return get_object_vars($this);
+    }
 }
 
 class Tokens
@@ -181,10 +253,13 @@ class Tokens
     private $tokens = [];
     private $tokensIndex = 0;
     private $tokensIndexPointer = 0;
-    private static $first = true;
 
-    public function __construct()
-    {}
+    public function __construct(array $tokens = null)
+    {
+        if ($tokens) foreach ($tokens as $token) {
+            $this->add($token);
+        }
+    }
 
     public function add(array $data)
     {
@@ -211,11 +286,15 @@ class Tokens
     {
         return $this->get($this->tokensIndexPointer++);
     }
-
-    public function getTokens()
+    public function getFirst()
     {
-        return $this->tokens;
+        return $this->get(0);
     }
+    public function getLast()
+    {
+        return $this->get($this->tokensIndex - 1);
+    }
+
     public function getTokensIndex()
     {
         return $this->tokensIndex;
@@ -228,6 +307,10 @@ class Tokens
     public function reset()
     {
         $this->tokensIndexPointer = 0;
+    }
+    public function count()
+    {
+        return count($this->tokens);
     }
     public function isEmpty()
     {

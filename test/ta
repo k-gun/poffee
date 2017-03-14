@@ -2,510 +2,69 @@ Array
 (
     [0] => Poffee\Token Object
         (
-            [tokens] => Poffee\Tokens Object
-                (
-                    [tokens:private] => Array
-                        (
-                            [0] => Poffee\Token {...}
-                            [1] => Poffee\Token Object
-                                (
-                                    [tokens] => Poffee\Tokens {...}
-                                    [value] => =
-                                    [type] => T_ASSIGN
-                                    [line] => 1
-                                    [indent] => 0
-                                    [start] => 2
-                                    [end] => 3
-                                    [length] => 1
-                                    [children] =>
-                                    [index] => 1
-                                )
-
-                            [2] => Poffee\Token Object
-                                (
-                                    [tokens] => Poffee\Tokens {...}
-                                    [value] => list()
-                                    [type] => T_NONE
-                                    [line] => 1
-                                    [indent] => 0
-                                    [start] => 4
-                                    [end] => 10
-                                    [length] => 6
-                                    [children] => Poffee\Tokens Object
-                                        (
-                                            [tokens:private] => Array
-                                                (
-                                                    [0] => Poffee\Token Object
-                                                        (
-                                                            [tokens] => Poffee\Tokens {...}
-                                                            [value] => list
-                                                            [type] => T_NONE
-                                                            [line] => 1
-                                                            [indent] => 0
-                                                            [start] => 0
-                                                            [end] => 4
-                                                            [length] => 4
-                                                            [children] =>
-                                                            [index] => 0
-                                                        )
-
-                                                    [1] => Poffee\Token Object
-                                                        (
-                                                            [tokens] => Poffee\Tokens {...}
-                                                            [value] => ()
-                                                            [type] => T_NONE
-                                                            [line] => 1
-                                                            [indent] => 0
-                                                            [start] => 4
-                                                            [end] => 6
-                                                            [length] => 2
-                                                            [children] => Poffee\Tokens Object
-                                                                (
-                                                                    [tokens:private] => Array
-                                                                        (
-                                                                            [0] => Poffee\Token Object
-                                                                                (
-                                                                                    [tokens] => Poffee\Tokens {...}
-                                                                                    [value] => ()
-                                                                                    [type] => T_NONE
-                                                                                    [line] => 1
-                                                                                    [indent] => 0
-                                                                                    [start] => 0
-                                                                                    [end] => 2
-                                                                                    [length] => 2
-                                                                                    [children] =>
-                                                                                    [index] => 0
-                                                                                )
-
-                                                                        )
-
-                                                                    [tokensIndex:private] => 1
-                                                                    [tokensIndexPointer:private] => 2
-                                                                )
-
-                                                            [index] => 1
-                                                        )
-
-                                                )
-
-                                            [tokensIndex:private] => 2
-                                            [tokensIndexPointer:private] => 3
-                                        )
-
-                                    [index] => 2
-                                )
-
-                            [3] => Poffee\Token Object
-                                (
-                                    [tokens] => Poffee\Tokens {...}
-                                    [value] =>
-
-                                    [type] => T_EOL
-                                    [line] => 1
-                                    [indent] => 0
-                                    [start] => 10
-                                    [end] => 11
-                                    [length] => 1
-                                    [children] =>
-                                    [index] => 3
-                                )
-
-                        )
-
-                    [tokensIndex:private] => 4
-                    [tokensIndexPointer:private] => 5
-                )
-
-            [value] => c
-            [type] => T_IDENTIFIER
+            [value] => class
+            [type] => T_OBJECT
             [line] => 1
             [indent] => 0
             [start] => 0
-            [end] => 1
-            [length] => 1
-            [children] =>
+            [end] => 5
+            [length] => 5
+            [children] => 
             [index] => 0
         )
 
     [1] => Poffee\Token Object
         (
-            [tokens] => Poffee\Tokens Object
-                (
-                    [tokens:private] => Array
-                        (
-                            [0] => Poffee\Token Object
-                                (
-                                    [tokens] => Poffee\Tokens {...}
-                                    [value] => c
-                                    [type] => T_IDENTIFIER
-                                    [line] => 1
-                                    [indent] => 0
-                                    [start] => 0
-                                    [end] => 1
-                                    [length] => 1
-                                    [children] =>
-                                    [index] => 0
-                                )
-
-                            [1] => Poffee\Token {...}
-                            [2] => Poffee\Token Object
-                                (
-                                    [tokens] => Poffee\Tokens {...}
-                                    [value] => list()
-                                    [type] => T_NONE
-                                    [line] => 1
-                                    [indent] => 0
-                                    [start] => 4
-                                    [end] => 10
-                                    [length] => 6
-                                    [children] => Poffee\Tokens Object
-                                        (
-                                            [tokens:private] => Array
-                                                (
-                                                    [0] => Poffee\Token Object
-                                                        (
-                                                            [tokens] => Poffee\Tokens {...}
-                                                            [value] => list
-                                                            [type] => T_NONE
-                                                            [line] => 1
-                                                            [indent] => 0
-                                                            [start] => 0
-                                                            [end] => 4
-                                                            [length] => 4
-                                                            [children] =>
-                                                            [index] => 0
-                                                        )
-
-                                                    [1] => Poffee\Token Object
-                                                        (
-                                                            [tokens] => Poffee\Tokens {...}
-                                                            [value] => ()
-                                                            [type] => T_NONE
-                                                            [line] => 1
-                                                            [indent] => 0
-                                                            [start] => 4
-                                                            [end] => 6
-                                                            [length] => 2
-                                                            [children] => Poffee\Tokens Object
-                                                                (
-                                                                    [tokens:private] => Array
-                                                                        (
-                                                                            [0] => Poffee\Token Object
-                                                                                (
-                                                                                    [tokens] => Poffee\Tokens {...}
-                                                                                    [value] => ()
-                                                                                    [type] => T_NONE
-                                                                                    [line] => 1
-                                                                                    [indent] => 0
-                                                                                    [start] => 0
-                                                                                    [end] => 2
-                                                                                    [length] => 2
-                                                                                    [children] =>
-                                                                                    [index] => 0
-                                                                                )
-
-                                                                        )
-
-                                                                    [tokensIndex:private] => 1
-                                                                    [tokensIndexPointer:private] => 2
-                                                                )
-
-                                                            [index] => 1
-                                                        )
-
-                                                )
-
-                                            [tokensIndex:private] => 2
-                                            [tokensIndexPointer:private] => 3
-                                        )
-
-                                    [index] => 2
-                                )
-
-                            [3] => Poffee\Token Object
-                                (
-                                    [tokens] => Poffee\Tokens {...}
-                                    [value] =>
-
-                                    [type] => T_EOL
-                                    [line] => 1
-                                    [indent] => 0
-                                    [start] => 10
-                                    [end] => 11
-                                    [length] => 1
-                                    [children] =>
-                                    [index] => 3
-                                )
-
-                        )
-
-                    [tokensIndex:private] => 4
-                    [tokensIndexPointer:private] => 5
-                )
-
-            [value] => =
-            [type] => T_ASSIGN
+            [value] => Book
+            [type] => T_IDENTIFIER
             [line] => 1
             [indent] => 0
-            [start] => 2
-            [end] => 3
-            [length] => 1
-            [children] =>
+            [start] => 6
+            [end] => 10
+            [length] => 4
+            [children] => 
             [index] => 1
         )
 
     [2] => Poffee\Token Object
         (
-            [tokens] => Poffee\Tokens Object
-                (
-                    [tokens:private] => Array
-                        (
-                            [0] => Poffee\Token Object
-                                (
-                                    [tokens] => Poffee\Tokens {...}
-                                    [value] => c
-                                    [type] => T_IDENTIFIER
-                                    [line] => 1
-                                    [indent] => 0
-                                    [start] => 0
-                                    [end] => 1
-                                    [length] => 1
-                                    [children] =>
-                                    [index] => 0
-                                )
-
-                            [1] => Poffee\Token Object
-                                (
-                                    [tokens] => Poffee\Tokens {...}
-                                    [value] => =
-                                    [type] => T_ASSIGN
-                                    [line] => 1
-                                    [indent] => 0
-                                    [start] => 2
-                                    [end] => 3
-                                    [length] => 1
-                                    [children] =>
-                                    [index] => 1
-                                )
-
-                            [2] => Poffee\Token {...}
-                            [3] => Poffee\Token Object
-                                (
-                                    [tokens] => Poffee\Tokens {...}
-                                    [value] =>
-
-                                    [type] => T_EOL
-                                    [line] => 1
-                                    [indent] => 0
-                                    [start] => 10
-                                    [end] => 11
-                                    [length] => 1
-                                    [children] =>
-                                    [index] => 3
-                                )
-
-                        )
-
-                    [tokensIndex:private] => 4
-                    [tokensIndexPointer:private] => 5
-                )
-
-            [value] => list()
-            [type] => T_NONE
-            [line] => 1
-            [indent] => 0
-            [start] => 4
-            [end] => 10
-            [length] => 6
-            [children] => Poffee\Tokens Object
-                (
-                    [tokens:private] => Array
-                        (
-                            [0] => Poffee\Token Object
-                                (
-                                    [tokens] => Poffee\Tokens {...}
-                                    [value] => list
-                                    [type] => T_NONE
-                                    [line] => 1
-                                    [indent] => 0
-                                    [start] => 0
-                                    [end] => 4
-                                    [length] => 4
-                                    [children] =>
-                                    [index] => 0
-                                )
-
-                            [1] => Poffee\Token Object
-                                (
-                                    [tokens] => Poffee\Tokens {...}
-                                    [value] => ()
-                                    [type] => T_NONE
-                                    [line] => 1
-                                    [indent] => 0
-                                    [start] => 4
-                                    [end] => 6
-                                    [length] => 2
-                                    [children] => Poffee\Tokens Object
-                                        (
-                                            [tokens:private] => Array
-                                                (
-                                                    [0] => Poffee\Token Object
-                                                        (
-                                                            [tokens] => Poffee\Tokens {...}
-                                                            [value] => ()
-                                                            [type] => T_NONE
-                                                            [line] => 1
-                                                            [indent] => 0
-                                                            [start] => 0
-                                                            [end] => 2
-                                                            [length] => 2
-                                                            [children] =>
-                                                            [index] => 0
-                                                        )
-
-                                                )
-
-                                            [tokensIndex:private] => 1
-                                            [tokensIndexPointer:private] => 2
-                                        )
-
-                                    [index] => 1
-                                )
-
-                        )
-
-                    [tokensIndex:private] => 2
-                    [tokensIndexPointer:private] => 3
-                )
-
-            [index] => 2
-        )
-
-    [3] => Poffee\Token Object
-        (
-            [tokens] => Poffee\Tokens Object
-                (
-                    [tokens:private] => Array
-                        (
-                            [0] => Poffee\Token Object
-                                (
-                                    [tokens] => Poffee\Tokens {...}
-                                    [value] => c
-                                    [type] => T_IDENTIFIER
-                                    [line] => 1
-                                    [indent] => 0
-                                    [start] => 0
-                                    [end] => 1
-                                    [length] => 1
-                                    [children] =>
-                                    [index] => 0
-                                )
-
-                            [1] => Poffee\Token Object
-                                (
-                                    [tokens] => Poffee\Tokens {...}
-                                    [value] => =
-                                    [type] => T_ASSIGN
-                                    [line] => 1
-                                    [indent] => 0
-                                    [start] => 2
-                                    [end] => 3
-                                    [length] => 1
-                                    [children] =>
-                                    [index] => 1
-                                )
-
-                            [2] => Poffee\Token Object
-                                (
-                                    [tokens] => Poffee\Tokens {...}
-                                    [value] => list()
-                                    [type] => T_NONE
-                                    [line] => 1
-                                    [indent] => 0
-                                    [start] => 4
-                                    [end] => 10
-                                    [length] => 6
-                                    [children] => Poffee\Tokens Object
-                                        (
-                                            [tokens:private] => Array
-                                                (
-                                                    [0] => Poffee\Token Object
-                                                        (
-                                                            [tokens] => Poffee\Tokens {...}
-                                                            [value] => list
-                                                            [type] => T_NONE
-                                                            [line] => 1
-                                                            [indent] => 0
-                                                            [start] => 0
-                                                            [end] => 4
-                                                            [length] => 4
-                                                            [children] =>
-                                                            [index] => 0
-                                                        )
-
-                                                    [1] => Poffee\Token Object
-                                                        (
-                                                            [tokens] => Poffee\Tokens {...}
-                                                            [value] => ()
-                                                            [type] => T_NONE
-                                                            [line] => 1
-                                                            [indent] => 0
-                                                            [start] => 4
-                                                            [end] => 6
-                                                            [length] => 2
-                                                            [children] => Poffee\Tokens Object
-                                                                (
-                                                                    [tokens:private] => Array
-                                                                        (
-                                                                            [0] => Poffee\Token Object
-                                                                                (
-                                                                                    [tokens] => Poffee\Tokens {...}
-                                                                                    [value] => ()
-                                                                                    [type] => T_NONE
-                                                                                    [line] => 1
-                                                                                    [indent] => 0
-                                                                                    [start] => 0
-                                                                                    [end] => 2
-                                                                                    [length] => 2
-                                                                                    [children] =>
-                                                                                    [index] => 0
-                                                                                )
-
-                                                                        )
-
-                                                                    [tokensIndex:private] => 1
-                                                                    [tokensIndexPointer:private] => 2
-                                                                )
-
-                                                            [index] => 1
-                                                        )
-
-                                                )
-
-                                            [tokensIndex:private] => 2
-                                            [tokensIndexPointer:private] => 3
-                                        )
-
-                                    [index] => 2
-                                )
-
-                            [3] => Poffee\Token {...}
-                        )
-
-                    [tokensIndex:private] => 4
-                    [tokensIndexPointer:private] => 5
-                )
-
-            [value] =>
-
-            [type] => T_EOL
+            [value] => :
+            [type] => T_COLON
             [line] => 1
             [indent] => 0
             [start] => 10
             [end] => 11
             [length] => 1
-            [children] =>
+            [children] => 
+            [index] => 2
+        )
+
+    [3] => Poffee\Token Object
+        (
+            [value] => 
+
+            [type] => T_EOL
+            [line] => 1
+            [indent] => 0
+            [start] => 11
+            [end] => 12
+            [length] => 1
+            [children] => 
             [index] => 3
+        )
+
+    [4] => Poffee\Token Object
+        (
+            [value] =>     public id
+
+            [type] => T_NONE
+            [line] => 2
+            [indent] => 14
+            [start] => 0
+            [end] => 14
+            [length] => 14
+            [children] => 
+            [index] => 0
         )
 
 )

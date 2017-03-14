@@ -1,1 +1,2 @@
-c = list()
+class Book:
+    public id
