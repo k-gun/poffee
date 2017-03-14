@@ -21,7 +21,7 @@ const T_IF = 'T_IF';
 const T_ELSE = 'T_ELSE';
 const T_ELSE_IF = 'T_ELSE_IF';
 const T_IDENTIFIER = 'T_IDENTIFIER';
-const T_PARENTHESIS_BLOCK = 'T_PARENTHESIS_BLOCK';
+const T_PAREN_BLOCK = 'T_PAREN_BLOCK';
 
 const T_NULL = 'T_NULL';
 const T_STRING = 'T_STRING';
@@ -52,13 +52,17 @@ function is_identifier($s) { return preg_match('~^[a-z_][a-z0-9_]*$~i', $s); }
 
 class Lexer
 {
+    private static $eol = PHP_EOL;
     private static $space = ' ';
     private static $indent = '    ';
-    private static $eol = PHP_EOL;
+    private static $indentLength = 4;
 
     public function __construct(string $indent = null)
     {
-        if ($indent) self::$indent = $indent;
+        if ($indent) {
+            self::$indent = $indent;
+            self::$indentLength = strlen($indent);
+        }
     }
 
     public function doScan($line, $input)
@@ -87,7 +91,6 @@ class Lexer
         $this->line = $line;
         $pattern = '~
              (?:(\s+)?([a-z_][a-z0-9_]*)\s*(?=\((.*)\)))
-            |(?:(\s+)?([a-z_][a-z0-9_]*)\s*(?=\((.+)\)))
             |(?:(\s+)?([^\s]+)\s*([\<\>\!\=\*/\+\-%\|\^\~]+)\s*(.+))
         ~ix';
         $matches = $this->getMatches($pattern, $input);
@@ -101,32 +104,62 @@ class Lexer
         foreach ($matches as $match) {
             $value = $match[0];
             if ($value == self::$space) {
-                continue;
+                continue; // ?
             }
-            $indent = 0;
-            if ($value[0] == ' ') {
-                $indent = strlen($value);
-            }
-            $type = $this->getType($value);
             $length = strlen($value);
+            if (ctype_space($value)
+                && $length >= self::$indentLength && $length % self::$indentLength == 0) {
+                $type = T_INDENT;
+            } else {
+                $type = $this->getType($value);
+            }
             $start = $match[1]; $end = $start + $length;
-            $tokens[] = [
-                'value' => $value, 'type' => $type,
-                'line' => $this->line, 'indent' => $indent,
-                'start' => $start, 'end' => $end, 'length' => $length,
-                'children' => null,
-            ];
+            $token = ['value' => $value, 'type' => $type, 'line' => $this->line, 'length' => $length,
+                'start' => $start, 'end' => $end, 'children' => null];
+            $tokens[] = $token;
         }
-        return $this->checkTypes($tokens);
+
+        $tokens = new Tokens($tokens);
+        if (!$tokens->isEmpty()) {
+            while ($token = $tokens->next()) {
+                if ($token->hasPrev()) {
+                    $prev = $token->prev;
+                    if ($token->type == T_ASSIGN) {
+                        $prev->type = T_IDENTIFIER;
+                    }
+                    if ($token->type == T_NONE) {
+                        $lexer = new Lexer(self::$indent);
+                        $children = $lexer->doSubscan($token->line, $token->value);
+                        if ($children) {
+                            if ($children->first()->value != $token->value) {
+                                $token->children = new Tokens($children->toArray());
+                                while ($child = $token->children->next()) {
+                                    $next = $child->next;
+                                    if ($next && $next->type == T_OPERATOR &&
+                                        $child->type == T_NONE && is_identifier($child->value)) {
+                                        $child->type = T_IDENTIFIER;
+                                    }
+                                }
+                            }
+                        }
+                        if ($prev->type == T_OBJECT /* class, function etc */ ||
+                            $prev->type == T_MODIFIER /* property */) {
+                            $token->type = T_IDENTIFIER;
+                        }
+                    }
+                }
+            }
+        }
+        return $tokens;
     }
 
     public function getType($value)
     {
         $value = strval($value);
         switch ($value) {
+            case self::$eol:    return T_EOL;
             case self::$space:  return T_SPACE;
             case self::$indent: return T_INDENT;
-            case self::$eol:    return T_EOL;
             case '=':           return T_ASSIGN;
             case ':':           return T_COLON;
             case '<': case '>': case '!':
@@ -152,45 +185,10 @@ class Lexer
                 } elseif (is_numeric($value)) {
                     return T_NUMBER;
                 } elseif ($fChar == '(' && $lChar == ')') {
-                    return T_PARENTHESIS_BLOCK;
+                    return T_PAREN_BLOCK;
                 }
         }
         return T_NONE;
-    }
-    public function checkTypes(array $tokens)
-    {
-        $tokens = new Tokens($tokens);
-        if (!$tokens->isEmpty()) {
-            while ($token = $tokens->next()) {
-                if ($token->hasPrev()) {
-                    $prev = $token->prev;
-                    if ($token->type == T_ASSIGN) {
-                        $prev->type = T_IDENTIFIER;
-                    }
-                    if ($token->type == T_NONE) {
-                        $lexer = new Lexer();
-                        $children = $lexer->doSubscan($token->line, $token->value);
-                        if ($children) {
-                            if ($children->first()->value != $token->value) {
-                                $token->children = new Tokens($children->toArray());
-                                while ($child = $token->children->next()) {
-                                    $next = $child->next;
-                                    if ($next && $next->type == T_OPERATOR &&
-                                        $child->type == T_NONE && is_identifier($child->value)) {
-                                        $child->type = T_IDENTIFIER;
-                                    }
-                                }
-                            }
-                        }
-                        if ($prev->type == T_OBJECT /* class, function etc */ ||
-                            $prev->type == T_MODIFIER /* property */) {
-                            $token->type = T_IDENTIFIER;
-                        }
-                    }
-                }
-            }
-        }
-        return $tokens;
     }
     public function getMatches($pattern, $input)
     {
