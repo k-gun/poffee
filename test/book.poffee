@@ -1,5 +1,1 @@
-class Book:
-    public id = null
-
-    public function __construct(?int id, foo, any bar):
-        this.id = id
+a != 1

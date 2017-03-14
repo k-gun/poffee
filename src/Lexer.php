@@ -6,9 +6,10 @@ const T_EOL = 'T_EOL'; // -1;
 const T_INDENT = 'T_INDENT'; // -2;
 const T_SPACE = 'T_SPACE'; // -3;
 
-const T_COLON = 'T_COLON';
-const T_ASSIGN = 'T_ASSIGN';
 const T_OPERATOR = 'T_OPERATOR';
+const T_OPERATOR_ASSIGN = 'T_OPERATOR_ASSIGN';
+const T_OPERATOR_COLON = 'T_OPERATOR_COLON';
+const T_OPERATOR_QUESTION = 'T_OPERATOR_QUESTION';
 
 const T_VAR = 'T_VAR';
 const T_OBJECT = 'T_OBJECT';
@@ -20,8 +21,10 @@ const T_RETURN = 'T_RETURN';
 const T_IF = 'T_IF';
 const T_ELSE = 'T_ELSE';
 const T_ELSE_IF = 'T_ELSE_IF';
+const T_PARENTHESIS_BLOCK = 'T_PARENTHESIS_BLOCK';
+
 const T_IDENTIFIER = 'T_IDENTIFIER';
-const T_PAREN_BLOCK = 'T_PAREN_BLOCK';
+const T_IDENTIFIER_VAR = 'T_IDENTIFIER_VAR';
 
 const T_NULL = 'T_NULL';
 const T_STRING = 'T_STRING';
@@ -48,7 +51,7 @@ const KEYWORDS_FUNCTION = ['declare', 'die', 'echo', 'empty', 'eval', 'exit',
 const KEYWORDS_CONDITION = ['if', 'else', 'elseif', 'else if'];
 const KEYWORDS_LOOP = ['for', 'foreach', 'while'];
 
-function is_identifier($s) { return preg_match('~^[a-z_][a-z0-9_]*$~i', $s); }
+function isValidIdentifier($s) { return preg_match('~^[a-z_][a-z0-9_]*$~i', $s); }
 
 class Lexer
 {
@@ -78,10 +81,12 @@ class Lexer
             |(?:(\s+)?(return)\s+(.+))                          # return
             |(?:(\s+)?(if|else|else\s*if)\s+(.+)(:))         # condition
             |(?:(\s+)?([a-z_][a-z0-9_]*)\s*(=)\s*([^\s]+))   # assign
+            |(?:(\s+)?([^\s]+)\s*([\<\>\!\=\*/\+\-%\|\^\~]+)\s*(.+)) # operators
             #|(?:(\s+)?('. join('|', KEYWORDS_FUNCTION) .')\s*\((.+)\))
             #|(?:(\s+)?\s+|(.))                          # any
         ~ix';
         $matches = $this->getMatches($pattern, $input);
+        pre($matches);
         return $this->generateTokens($matches);
     }
 
@@ -124,26 +129,28 @@ class Lexer
             while ($token = $tokens->next()) {
                 if ($token->hasPrev()) {
                     $prev = $token->prev;
-                    if ($token->type == T_ASSIGN) {
-                        $prev->type = T_IDENTIFIER;
+                    if ($prev->type == T_NONE
+                            && ($token->type == T_OPERATOR || $token->type == T_OPERATOR_ASSIGN)) {
+                        $prev->type = T_IDENTIFIER_VAR;
                     }
+                    // still not set?
                     if ($token->type == T_NONE) {
                         $lexer = new Lexer(self::$indent);
                         $children = $lexer->doSubscan($token->line, $token->value);
                         if ($children) {
-                            if ($children->first()->value != $token->value) {
+                            if ($children->first->value != $token->value) {
                                 $token->children = new Tokens($children->toArray());
                                 while ($child = $token->children->next()) {
                                     $next = $child->next;
                                     if ($next && $next->type == T_OPERATOR &&
-                                        $child->type == T_NONE && is_identifier($child->value)) {
+                                        $child->type == T_NONE && isValidIdentifier($child->value)) {
                                         $child->type = T_IDENTIFIER;
                                     }
                                 }
                             }
                         }
-                        if ($prev->type == T_OBJECT /* class, function etc */ ||
-                            $prev->type == T_MODIFIER /* property */) {
+                        if ($prev->type == T_OBJECT /* class, function etc */
+                                || $prev->type == T_MODIFIER /* property */) {
                             $token->type = T_IDENTIFIER;
                         }
                     }
@@ -160,13 +167,13 @@ class Lexer
             case self::$eol:    return T_EOL;
             case self::$space:  return T_SPACE;
             case self::$indent: return T_INDENT;
-            case '=':           return T_ASSIGN;
-            case ':':           return T_COLON;
-            case '<': case '>': case '!':
-            case '%': case '*': case '/':
-            case '+': case '-': case '|':
-            case '^': case '~': return T_OPERATOR;
+            case '=':           return T_OPERATOR_ASSIGN;
+            case ':':           return T_OPERATOR_COLON;
+            case '?':           return T_OPERATOR_QUESTION;
             default:
+                if (ctype_punct($value)) {
+                    return T_OPERATOR;
+                }
                 if (in_array($value, KEYWORDS_OBJECT)) {
                     return T_OBJECT;
                 } elseif (in_array($value, KEYWORDS_MODIFIER)) {
@@ -185,7 +192,7 @@ class Lexer
                 } elseif (is_numeric($value)) {
                     return T_NUMBER;
                 } elseif ($fChar == '(' && $lChar == ')') {
-                    return T_PAREN_BLOCK;
+                    return T_PARENTHESIS_BLOCK;
                 }
         }
         return T_NONE;
