@@ -50,6 +50,7 @@ const KEYWORDS_FUNCTION = ['declare', 'die', 'echo', 'empty', 'eval', 'exit',
     '__halt_compiler'];
 const KEYWORDS_CONDITION = ['if', 'else', 'elseif', 'else if'];
 const KEYWORDS_LOOP = ['for', 'foreach', 'while'];
+const KEYWORDS_BOOLEAN = ['true', 'false'];
 
 function isValidIdentifier($s) { return preg_match('~^[a-z_][a-z0-9_]*$~i', $s); }
 
@@ -128,7 +129,7 @@ class Lexer
         if (!$tokens->isEmpty()) {
             while ($token = $tokens->next()) {
                 if ($token->hasPrev()) {
-                    $prev = $token->prev;
+                    $prev = $token->prev();
                     if ($prev->type == T_NONE
                             && ($token->type == T_OPERATOR || $token->type == T_OPERATOR_ASSIGN)) {
                         $prev->type = T_IDENTIFIER_VAR;
@@ -141,7 +142,7 @@ class Lexer
                             if ($children->first->value != $token->value) {
                                 $token->children = new Tokens($children->toArray());
                                 while ($child = $token->children->next()) {
-                                    $next = $child->next;
+                                    $next = $child->next();
                                     if ($next && $next->type == T_OPERATOR &&
                                         $child->type == T_NONE && isValidIdentifier($child->value)) {
                                         $child->type = T_IDENTIFIER;
@@ -152,6 +153,16 @@ class Lexer
                         if ($prev->type == T_OBJECT /* class, function etc */
                                 || $prev->type == T_MODIFIER /* property */) {
                             $token->type = T_IDENTIFIER;
+                        }
+                    }
+                }
+                if ($token->hasNext()) {
+                    $next = $token->next();
+                    if ($next->type == T_NONE) {
+                        if (isValidIdentifier($next->value)) {
+                            $next->type = T_IDENTIFIER_VAR;
+                        } else {
+                            // ??
                         }
                     }
                 }
@@ -170,6 +181,8 @@ class Lexer
             case '=':           return T_OPERATOR_ASSIGN;
             case ':':           return T_OPERATOR_COLON;
             case '?':           return T_OPERATOR_QUESTION;
+            case 'null': return T_NULL;
+            case 'true': case 'false': return T_BOOLEAN;
             default:
                 if (ctype_punct($value)) {
                     return T_OPERATOR;
@@ -179,11 +192,6 @@ class Lexer
                 } elseif (in_array($value, KEYWORDS_MODIFIER)) {
                     return T_MODIFIER;
                 }
-                $name = strtoupper("t_{$value}");
-                if (defined(__namespace__ .'\\'. $name)) {
-                    return $name; // @tmp // constant($name);
-                }
-
                 $fChar = substr($value, 0, 1); $lChar = substr($value, -1);
                 if ($fChar == "'" && $lChar == "'") {
                     return T_STRING;
@@ -193,6 +201,10 @@ class Lexer
                     return T_NUMBER;
                 } elseif ($fChar == '(' && $lChar == ')') {
                     return T_PARENTHESIS_BLOCK;
+                }
+                $name = strtoupper("t_{$value}"); // !!
+                if (defined(__namespace__ .'\\'. $name)) {
+                    return $name; // @tmp // constant($name);
                 }
         }
         return T_NONE;
@@ -251,7 +263,7 @@ class Tokens
     public function __construct(array $tokens = null)
     {
         if ($tokens) foreach ($tokens as $token) {
-            if (!is_array($token)) {
+            if (is_object($token)) {
                 $token = $token->toArray();
             }
             $this->add($token);
