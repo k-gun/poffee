@@ -170,7 +170,7 @@ class Lexer
     {
         $tokens = new Tokens($tokens);
         if (!$tokens->isEmpty()) {
-            while ($token = $tokens->getNext()) {
+            while ($token = $tokens->next()) {
                 if ($token->hasPrev()) {
                     $prev = $token->prev;
                     if ($token->type == T_ASSIGN) {
@@ -180,9 +180,9 @@ class Lexer
                         $lexer = new Lexer();
                         $children = $lexer->doSubscan($token->line, $token->value);
                         if ($children) {
-                            if ($children->getFirst()->value != $token->value) {
+                            if ($children->first()->value != $token->value) {
                                 $token->children = new Tokens($children->toArray());
-                                while ($child = $token->children->getNext()) {
+                                while ($child = $token->children->next()) {
                                     $next = $child->next;
                                     if ($next && $next->type == T_OPERATOR &&
                                         $child->type == T_NONE && is_identifier($child->value)) {
@@ -219,12 +219,10 @@ class Token
     }
     public function __get($name)
     {
-        if ($name == 'prev') return $this->getPrev();
-        if ($name == 'next') return $this->getNext();
-    }
-    public function __set($name, $value)
-    {
-        $this->{$name} = $value;
+        switch ($name) {
+            case 'prev': return $this->prev();
+            case 'next': return $this->next();
+        }
     }
     public function hasPrev()
     {
@@ -234,11 +232,11 @@ class Token
     {
         return $this->tokens->has($this->index + 1);
     }
-    public function getPrev()
+    public function prev()
     {
         return $this->tokens->get($this->index - 1);
     }
-    public function getNext()
+    public function next()
     {
         return $this->tokens->get($this->index + 1);
     }
@@ -260,6 +258,15 @@ class Tokens
             $this->add($token);
         }
     }
+    public function __get($name)
+    {
+        switch ($name) {
+            case 'prev': return $this->prev();
+            case 'next': return $this->next();
+            case 'first': return $this->first();
+            case 'last': return $this->last();
+        }
+    }
 
     public function add(array $data)
     {
@@ -273,6 +280,10 @@ class Tokens
     {
         return isset($this->tokens[$i]);
     }
+    public function hasPrev()
+    {
+        return $this->has($this->tokensIndexPointer - 1);
+    }
     public function hasNext()
     {
         return $this->has($this->tokensIndexPointer);
@@ -282,24 +293,29 @@ class Tokens
     {
         return $this->tokens[$i] ?? null;
     }
-    public function getNext()
+    public function prev()
+    {
+        return $this->get($this->tokensIndexPointer--);
+    }
+    public function next()
     {
         return $this->get($this->tokensIndexPointer++);
     }
-    public function getFirst()
+
+    public function first()
     {
         return $this->get(0);
     }
-    public function getLast()
+    public function last()
     {
         return $this->get($this->tokensIndex - 1);
     }
 
-    public function getTokensIndex()
+    public function tokensIndex()
     {
         return $this->tokensIndex;
     }
-    public function getTokensIndexPointer()
+    public function tokensIndexPointer()
     {
         return $this->tokensIndexPointer;
     }
@@ -318,6 +334,6 @@ class Tokens
     }
     public function toArray()
     {
-        return array_filter($this->tokens);
+        return array_filter($this->tokens); // array_filter?
     }
 }
