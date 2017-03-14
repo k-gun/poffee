@@ -1,8 +1,5 @@
 class Book:
     public id = null
 
-    public function setId(id):
+    public function __construct(?int id, foo, any bar):
         this.id = id
-
-    public function getId(id):
-        return this.id

@@ -69,12 +69,12 @@ class Lexer
     {
         $this->line = $line;
         $pattern = '~
-             (?:(\s+)?//\s*([^\r\n]+))                  # comment
-            |(?:(\s+)?(use)\s*([^\r\n]+))               # use
+             (?:(\s+)?//\s*([^\r\n]+))                    # comment
+            |(?:(\s+)?(use)\s*([^\r\n]+))                     # use
             |(?:(\s+)?(const)\s+([a-z_][a-z0-9_]*)\s*(=)\s*(.+))   # const
             |(?:(\s+)?(abstract|final|static)?\s*(class)\s+(\w+)\s*
                 (?:(extends)\s+(\w+)\s*)?(?:(implements)\s+(\w+)\s*)?(:)) # class
-            |(?:(\s+)?(var|public|private|protected)\s+(\w+)(?:\s*(=)\s*([^\s]+))?) # property
+            |(?:(\s+)?(var|public|private|protected)\s+(\w+)(?:\s*(=)\s*([^\s]+))?) # function, property
             |(?:(\s+)?(return)\s+(.+))                          # return
             |(?:(\s+)?(if|else|else\s*if)\s+(.+)(:))         # condition
             |(?:(\s+)?([a-z_][a-z0-9_]*)\s*(=)\s*([^\s]+))   # assign
