@@ -26,6 +26,8 @@ const T_PARENTHESIS_BLOCK = 'T_PARENTHESIS_BLOCK';
 const T_IDENTIFIER = 'T_IDENTIFIER';
 const T_IDENTIFIER_VAR = 'T_IDENTIFIER_VAR';
 
+const T_EXPRESSION = 'T_EXPRESSION';
+
 const T_NULL = 'T_NULL';
 const T_STRING = 'T_STRING';
 const T_STRING_VAR = 'T_STRING_VAR';
@@ -52,7 +54,18 @@ const KEYWORDS_CONDITION = ['if', 'else', 'elseif', 'else if'];
 const KEYWORDS_LOOP = ['for', 'foreach', 'while'];
 const KEYWORDS_BOOLEAN = ['true', 'false'];
 
-function isValidIdentifier($s) { return preg_match('~^[a-z_][a-z0-9_]*$~i', $s); }
+// cache these!
+function isValidIdentifier($s) {
+    return preg_match('~^(?:[a-z_]\w*)$~i', $s);
+}
+function isValidExpression($s) {
+    return preg_match('~^(
+         (?:(?:[a-z_]\w*)\s*(?=[\<\>\!\=\*/\+\-%\|\^\~]+)\s*(.+)) # eg: a < 1
+        |(?:(?:[a-z_]\w*)\s*(?=\?)(.+)\s*(?=:)\s*(.+))            # eg: a ? a : 1
+        |(?:(?:[a-z_]\w*)\s*(?=\?\?)\s*(.+))                      # eg: a ?? 1
+        |(?:(?:[a-z_]\w*)\s*(?=\?:)\s*(.+))                       # eg: a ?: 1
+    )$~ix', $s);
+}
 
 class Lexer
 {
@@ -109,51 +122,57 @@ class Lexer
         $tokens = [];
         foreach ($matches as $match) {
             $value = $match[0];
-            if ($value == self::$space) {
-                continue; // ?
-            }
+            if ($value == self::$space) continue; // ?
             $length = strlen($value);
-            if (ctype_space($value)
-                && $length >= self::$indentLength && $length % self::$indentLength == 0) {
+            if (ctype_space($value) && $length >= self::$indentLength
+                    && $length % self::$indentLength == 0) {
                 $type = T_INDENT;
             } else {
                 $type = $this->getType($value);
             }
             $start = $match[1]; $end = $start + $length;
-            $token = ['value' => $value, 'type' => $type, 'line' => $this->line, 'length' => $length,
-                'start' => $start, 'end' => $end, 'children' => null];
+            $token = ['value' => $value, 'type' => $type, 'line' => $this->line,
+                // 'length' => [$length, $start, $end],
+                // 'length' => $length, 'start' => $start, 'end' => $end, 'children' => null
+            ];
             $tokens[] = $token;
         }
 
         $tokens = new Tokens($tokens);
         if (!$tokens->isEmpty()) {
             while ($token = $tokens->next()) {
+                if ($token->type == T_NONE) {
+                    if (isValidExpression($token->value)) {
+                        $token->type = T_EXPRESSION;
+                    }
+                }
+                if ($token->type == T_EXPRESSION) {
+                    $lexer = new Lexer(self::$indent);
+                    $children = $lexer->doSubscan($token->line, $token->value);
+                    if ($children) {
+                        if ($children->first->value != $token->value) {
+                            $token->children = new Tokens($children->toArray());
+                            while ($child = $token->children->next()) {
+                                $next = $child->next();
+                                if ($next && $next->type == T_OPERATOR &&
+                                    $child->type == T_NONE && isValidIdentifier($child->value)) {
+                                    $child->type = T_IDENTIFIER;
+                                }
+                            }
+                        }
+                    }
+                }
                 if ($token->hasPrev()) {
                     $prev = $token->prev();
                     if ($prev->type == T_NONE
                             && ($token->type == T_OPERATOR || $token->type == T_OPERATOR_ASSIGN)) {
                         $prev->type = T_IDENTIFIER_VAR;
                     }
-                    // still not set?
-                    if ($token->type == T_NONE) {
-                        $lexer = new Lexer(self::$indent);
-                        $children = $lexer->doSubscan($token->line, $token->value);
-                        if ($children) {
-                            if ($children->first->value != $token->value) {
-                                $token->children = new Tokens($children->toArray());
-                                while ($child = $token->children->next()) {
-                                    $next = $child->next();
-                                    if ($next && $next->type == T_OPERATOR &&
-                                        $child->type == T_NONE && isValidIdentifier($child->value)) {
-                                        $child->type = T_IDENTIFIER;
-                                    }
-                                }
-                            }
-                        }
-                        if ($prev->type == T_OBJECT /* class, function etc */
-                                || $prev->type == T_MODIFIER /* property */) {
-                            $token->type = T_IDENTIFIER;
-                        }
+                    if ($token->type == T_NONE || $token->type == T_EXPRESSION) {
+                        // if ($prev->type == T_OBJECT /* class, function etc */
+                        //         || $prev->type == T_MODIFIER /* property */) {
+                        //     $token->type = T_IDENTIFIER;
+                        // }
                     }
                 }
                 if ($token->hasNext()) {
@@ -161,9 +180,7 @@ class Lexer
                     if ($next->type == T_NONE) {
                         if (isValidIdentifier($next->value)) {
                             $next->type = T_IDENTIFIER_VAR;
-                        } else {
-                            // ??
-                        }
+                        } // else ??
                     }
                 }
             }
