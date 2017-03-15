@@ -27,6 +27,9 @@ const T_LOOP = 'T_LOOP';
 const T_PARENTHESES_BLOCK = 'T_PARENTHESES_BLOCK';
 const T_OPEN_PARENTHESES = 'T_OPEN_PARENTHESES';
 const T_CLOSE_PARENTHESES = 'T_CLOSE_PARENTHESES';
+const T_BRACKET_BLOCK = 'T_BRACKET_BLOCK';
+const T_OPEN_BRACKET = 'T_OPEN_BRACKET';
+const T_CLOSE_BRACKET = 'T_CLOSE_BRACKET';
 
 const T_IDENTIFIER = 'T_IDENTIFIER';
 const T_VAR_IDENTIFIER = 'T_VAR_IDENTIFIER';
@@ -50,16 +53,9 @@ function isValidIdentifier($input) {
     return !!preg_match('~^(?:[a-z_]\w*)$~i', $input);
 }
 function isValidExpression($input) {
+    return pre($input);
     return !!preg_match('~^(
-          (?:(\()?(?:\w+)\s*(?=[\<\>\!\=\*/\+\-%\|\^\~]+)\s*(.+)(\))?)     # eg: a < 1 etc.
-        | (?:(\()?(?:\w+)\s*(?=\?)(.+)\s*(?=:)\s*(.+)(\))?)                # eg: a ? a : 1
-        | (?:(\()?(?:\w+)\s*(?=\?\?)\s*(.+)(\))?)                          # eg: a ?? 1
-        | (?:(\()?(?:\w+)\s*(?=\?:)\s*(.+)(\))?)                           # eg: a ?: 1
-        | (?:(\()?(?:\w+)\s*(?=(or|and|ise?|not|as))\s*(.+)(\))?)             # eg: a or 1
-        | (?:(\()?([a-z_]\w*)\s*(\()\s*(.+)\s*(\)))(\)?)                   # eg: foo(a), foo(a ...)
-        | (?:([\'"].*[\'"]\s*[,+]\s*(.*)))                                 # eg: "a", ..., "a" + ...
-        | (?:(\()\s*(.+)\s*(\)))                                           # eg: (a), (a ...)
-        | (?:(?:([a-z_]\w*)([+-]{2})|([a-z_]\w*)\[([a-z_]\w*)([+-]{2})\])) # eg: i++, a[i++]
+        //
     )$~ix', trim($input));
 }
 
@@ -84,21 +80,9 @@ class Lexer
         $lexer = new self(self::$indent);
         $lexer->line = $line;
         $pattern = '~
-              (?:(\s+)?(//)\s*(.+))                    # comment
-            | (?:(\s+)?(use)\s*(.+))                     # use
-            | (?:(\s+)?(const)\s+([a-z_]\w*)\s*(=)\s*(.+))   # const
-            | (?:(\s+)?(abstract|final|static)?\s*(class)\s+(\w+)\s*
-                (?:(extends)\s+(\w+)\s*)?(?:(implements)\s+(\w+)\s*)?(:))   # class
-            | (?:(\s+)?(var|public|private|protected)\s+(\w+)(?:\s*(=)\s*([^\s]+))?) # function, property
-            | (?:(\s+)?(func(?:tion)?)\s+([a-z_]\w*)\s*(\()(.*)(\))\s*(:)) # function
-            | (?:(\s+)?(for|foreach|while)\s+(.+)\s*(:))                          # loop
-            | (?:(\s+)?(return)\s+(.+))                          # return
-            | (?:(\s+)?(if|else|else\s*if)\s+(.+)(:))         # condition
-            | (?:(\s+)?([a-z_]\w*)\s*(\()(.*)(\)))
-            | (?:(\s+)?([^\s]+)\s*([\<\>\!\=\*/\+\-%\|\^\~]+)\s*(.+)) # operators // en sonda kalsin
-            #| (?:(\s+)?(//)\s*(.*)([\r\n]))                    # comment
-            #| (?:(.))                          # any
-        ~iux';
+            (?:(\s+)?(//)\s*(.+))                    # comment
+            | (?:(\s+)?([a-z_]\w*)\s*(=)\s*(.+))
+        ~ix';
         $matches = $lexer->getMatches($pattern, $input);
         pre($matches);
         return $lexer->generateTokens($matches);
@@ -151,9 +135,10 @@ class Lexer
                 if ($token->type == T_NONE) {
                     if ($nextType == T_ASSIGN_OPERATOR) {
                         $token->type = T_VAR_IDENTIFIER;
-                    } elseif (isValidExpression($token->value)) {
-                        $token->type = T_EXPRESSION;
                     }
+                    // elseif (isValidExpression($token->value)) {
+                    //     $token->type = T_EXPRESSION;
+                    // }
                 }
             }
         }
@@ -172,8 +157,8 @@ class Lexer
             case ',':           return T_COMMA_OPERATOR;
             case '?':           return T_QUESTION_OPERATOR;
             case '//':           return T_COMMENT_OPERATOR;
-            case '(':           return T_OPEN_PARENTHESES;
-            case ')':           return T_CLOSE_PARENTHESES;
+            case '(':           return T_OPEN_PARENTHESES; case ')': return T_CLOSE_PARENTHESES;
+            case '[': return T_OPEN_BRACKET; case ']': T_CLOSE_BRACKET;
             case 'null': return T_NULL;
             case 'true': case 'false': return T_BOOLEAN;
             case 'for': case 'foreach': case 'while': return T_LOOP;

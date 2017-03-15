@@ -1,2 +1,2 @@
-foreach books as id, name:
-    print(id, name)
+// comment
+a = 1 * 2

@@ -1,62 +1,44 @@
 [
     {
-        "value": "foreach",
-        "type": "T_LOOP",
+        "value": "\/\/",
+        "type": "T_COMMENT_OPERATOR",
         "line": 1,
         "index": 0
     },
     {
-        "value": "books as id, name",
-        "type": "T_EXPRESSION",
+        "value": "comment",
+        "type": "T_NONE",
         "line": 1,
         "index": 1
-    },
-    {
-        "value": ":",
-        "type": "T_COLON_OPERATOR",
-        "line": 1,
-        "index": 2
     },
     {
         "value": "\n",
         "type": "T_EOL",
         "line": 1,
-        "index": 3
+        "index": 2
     },
     {
-        "value": "    ",
-        "type": "T_INDENT",
+        "value": "a",
+        "type": "T_VAR_IDENTIFIER",
         "line": 2,
         "index": 0
     },
     {
-        "value": "print",
-        "type": "T_FUNCTION_IDENTIFIER",
+        "value": "=",
+        "type": "T_ASSIGN_OPERATOR",
         "line": 2,
         "index": 1
     },
     {
-        "value": "(",
-        "type": "T_OPEN_PARENTHESES",
-        "line": 2,
-        "index": 2
-    },
-    {
-        "value": "id, name",
+        "value": "1 * 2",
         "type": "T_NONE",
         "line": 2,
-        "index": 3
-    },
-    {
-        "value": ")",
-        "type": "T_CLOSE_PARENTHESES",
-        "line": 2,
-        "index": 4
+        "index": 2
     },
     {
         "value": "\n",
         "type": "T_EOL",
         "line": 2,
-        "index": 5
+        "index": 3
     }
 ]
