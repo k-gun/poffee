@@ -49,13 +49,13 @@ function isValidIdentifier($input) {
 }
 function isValidExpression($input) {
     return !!preg_match('~^(
-         (?:(\()?(?:\w+)\s*(?=[\<\>\!\=\*/\+\-%\|\^\~]+)\s*(.+)(\))?)   # eg: a < 1
+         (?:(\()?(?:\w+)\s*(?=[\<\>\!\=\*/\+\-%\|\^\~]+)\s*(.+)(\))?)   # eg: a < 1 etc.
         |(?:(\()?(?:\w+)\s*(?=\?)(.+)\s*(?=:)\s*(.+)(\))?)              # eg: a ? a : 1
         |(?:(\()?(?:\w+)\s*(?=\?\?)\s*(.+)(\))?)                        # eg: a ?? 1
         |(?:(\()?(?:\w+)\s*(?=\?:)\s*(.+)(\))?)                         # eg: a ?: 1
         |(?:(\()?(?:\w+)\s*(?=(or|and|ise?|not))\s*(.+)(\))?)           # eg: a or 1
         |(?:(\()?([a-z_]\w*)\s*(\()\s*(.+)\s*(\)))(\)?)                 # eg: foo(a), foo(a ...)
-        |(?:([\'"].*[\'"]\s*,(.*)))                                     # eg: "a", ...
+        |(?:([\'"].*[\'"]\s*[,+]\s*(.*)))                               # eg: "a", ..., "a" + ...
         |(?:(\()\s*(.+)\s*(\)))                                         # eg: (a), (a ...)
     )$~ix', trim($input));
 }
@@ -144,7 +144,7 @@ class Lexer
                 $prev = $token->prev(); $prevType = $prev ? $prev->type : null;
                 $next = $token->next(); $nextType = $next ? $next->type : null;
                 if ($token->type == T_NONE) {
-                    if ($nextType == T_OPERATOR || $nextType == T_ASSIGN_OPERATOR) {
+                    if ($nextType == T_ASSIGN_OPERATOR) {
                         $token->type = T_VAR_IDENTIFIER;
                     } elseif (isValidExpression($token->value)) {
                         $token->type = T_EXPRESSION;

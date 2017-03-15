@@ -1,3 +1,5 @@
 func foo(name):
     if name:
         printf('hi %s', name)
+    name = 'kerem' + name
+    print(name)
