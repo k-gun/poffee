@@ -7,10 +7,10 @@ const T_INDENT = 'T_INDENT'; // -2;
 const T_SPACE = 'T_SPACE'; // -3;
 
 const T_OPERATOR = 'T_OPERATOR';
-const T_OPERATOR_ASSIGN = 'T_OPERATOR_ASSIGN';
-const T_OPERATOR_COLON = 'T_OPERATOR_COLON';
-const T_OPERATOR_COMMA = 'T_OPERATOR_COMMA';
-const T_OPERATOR_QUESTION = 'T_OPERATOR_QUESTION';
+const T_ASSIGN_OPERATOR = 'T_ASSIGN_OPERATOR';
+const T_COLON_OPERATOR = 'T_COLON_OPERATOR';
+const T_COMMA_OPERATOR = 'T_COMMA_OPERATOR';
+const T_QUESTION_OPERATOR = 'T_QUESTION_OPERATOR';
 
 const T_VAR = 'T_VAR';
 const T_OBJECT = 'T_OBJECT';
@@ -23,42 +23,41 @@ const T_IF = 'T_IF';
 const T_ELSE = 'T_ELSE';
 const T_ELSE_IF = 'T_ELSE_IF';
 const T_PARENTHESES_BLOCK = 'T_PARENTHESES_BLOCK';
-const T_PARENTHESES_OPEN = 'T_PARENTHESES_OPEN';
-const T_PARENTHESES_CLOSE = 'T_PARENTHESES_CLOSE';
+const T_OPEN_PARENTHESES = 'T_OPEN_PARENTHESES';
+const T_CLOSE_PARENTHESES = 'T_CLOSE_PARENTHESES';
 
 const T_IDENTIFIER = 'T_IDENTIFIER';
-const T_IDENTIFIER_VAR = 'T_IDENTIFIER_VAR';
-const T_IDENTIFIER_FUNCTION = 'T_IDENTIFIER_FUNCTION';
-const T_IDENTIFIER_OBJECT = 'T_IDENTIFIER_OBJECT';
-const T_IDENTIFIER_PROPERTY = 'T_IDENTIFIER_PROPERTY';
-const T_IDENTIFIER_METHOD = 'T_IDENTIFIER_METHOD';
+const T_VAR_IDENTIFIER = 'T_VAR_IDENTIFIER';
+const T_FUNCTION_IDENTIFIER = 'T_FUNCTION_IDENTIFIER';
+const T_OBJECT_IDENTIFIER = 'T_OBJECT_IDENTIFIER';
+const T_PROPERTY_IDENTIFIER = 'T_PROPERTY_IDENTIFIER';
+const T_METHOD_IDENTIFIER = 'T_METHOD_IDENTIFIER';
 
 const T_EXPRESSION = 'T_EXPRESSION';
 
 const T_NULL = 'T_NULL';
 const T_STRING = 'T_STRING';
-const T_STRING_VAR = 'T_STRING_VAR';
 const T_NUMBER = 'T_NUMBER';
 const T_BOOLEAN = 'T_BOOLEAN';
 
 const T_FUNCTION = 'T_FUNCTION';
 const T_FUNCTION_CALL = 'T_FUNCTION_CALL';
 
-// cache these!
-function isValidIdentifier($s) {
-    return !!preg_match('~^(?:[a-z_]\w*)$~i', $s);
+// cache these?
+function isValidIdentifier($input) {
+    return !!preg_match('~^(?:[a-z_]\w*)$~i', $input);
 }
-function isValidExpression($s) {
+function isValidExpression($input) {
     return !!preg_match('~^(
-         (?:(\()?(?:[a-z_]\w*)\s*(?=[\<\>\!\=\*/\+\-%\|\^\~]+)\s*(.+)(\))?) # eg: a < 1
-        |(?:(\()?(?:[a-z_]\w*)\s*(?=\?)(.+)\s*(?=:)\s*(.+)(\))?)            # eg: a ? a : 1
-        |(?:(\()?(?:[a-z_]\w*)\s*(?=\?\?)\s*(.+)(\))?)                      # eg: a ?? 1
-        |(?:(\()?(?:[a-z_]\w*)\s*(?=\?:)\s*(.+)(\))?)                       # eg: a ?: 1
-        |(?:(\()\s*(.+)\s*(\)))                                             # eg: (a), (a ...)
-    )$~ix', trim($s));
+         (?:(\()?(?:\w+)\s*(?=[\<\>\!\=\*/\+\-%\|\^\~]+)\s*(.+)(\))?)   # eg: a < 1
+        |(?:(\()?(?:\w+)\s*(?=\?)(.+)\s*(?=:)\s*(.+)(\))?)              # eg: a ? a : 1
+        |(?:(\()?(?:\w+)\s*(?=\?\?)\s*(.+)(\))?)                        # eg: a ?? 1
+        |(?:(\()?(?:\w+)\s*(?=\?:)\s*(.+)(\))?)                         # eg: a ?: 1
+        |(?:(\()?(?:\w+)\s*(?=(or|and))\s*(.+)(\))?)                    # eg: a or 1
+        |(?:(\()?(\w+)\s*(\()\s*(.+)\s*(\)))(\)?)                       # eg: foo(a), foo(a ...)
+        |(?:(\()\s*(.+)\s*(\)))                                         # eg: (a), (a ...)
+    )$~ix', trim($input));
 }
-// prd("\x7f-\xff");
-// prd(isValidExpression('(a) '));
 
 class Lexer
 {
@@ -66,6 +65,7 @@ class Lexer
     private static $space = ' ';
     private static $indent = '    ';
     private static $indentLength = 4;
+    private static $cache = [];
 
     public function __construct(string $indent = null)
     {
@@ -137,62 +137,13 @@ class Lexer
         $tokens = new Tokens($tokens);
         if (!$tokens->isEmpty()) {
             while ($token = $tokens->next()) {
-                $prev = $token->prev(); $next = $token->next();
-                // at first
+                $prev = $token->prev(); $prevType = $prev ? $prev->type : null;
+                $next = $token->next(); $nextType = $next ? $next->type : null;
                 if ($token->type == T_NONE) {
-                    if (isValidExpression($token->value)) {
+                    if ($nextType == T_OPERATOR || $nextType == T_ASSIGN_OPERATOR) {
+                        $token->type = T_VAR_IDENTIFIER;
+                    } elseif (isValidExpression($token->value)) {
                         $token->type = T_EXPRESSION;
-                    }
-                }
-
-                if ($token->type == T_EXPRESSION) {
-                    $children = null;
-                    if ($prev->type == T_IDENTIFIER_FUNCTION) {
-                        $children = $this->scanFunctionExpression($token->line, $token->value);
-                    } else {
-                        // $children = $this->scanExpression($token->line, $token->value);
-                    }
-                    if ($children) {
-                        if ($children->first->value != $token->value) {
-                            $token->children = new Tokens($children->toArray());
-                            while ($child = $token->children->next()) {
-                                $next = $child->next();
-                                if ($next && $next->type == T_OPERATOR &&
-                                    $child->type == T_NONE && isValidIdentifier($child->value)) {
-                                    $child->type = T_IDENTIFIER;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if ($prev) {
-                    if ($token->value == 'extends') {
-                        $prev->type = T_IDENTIFIER_OBJECT;
-                    }
-                    if ($prev->type == T_NONE && ($token->type == T_OPERATOR || $token->type == T_OPERATOR_ASSIGN)) {
-                        $prev->type = T_IDENTIFIER_VAR;
-                    }
-                }
-                if ($next) {
-                    if ($token->value == 'extends' || $token->value == 'implements') {
-                        $next->type = T_IDENTIFIER_OBJECT;
-                    }
-                    if ($next->type == T_NONE) {
-                        if ($token->type == T_FUNCTION) {
-                            $next->type = T_IDENTIFIER_FUNCTION;
-                        } else {
-                            $next->type = T_EXPRESSION;
-                        }
-                    }
-                }
-
-                // at last
-                if ($token->type == T_NONE) {
-                    if ($prev && $prev->type == T_OBJECT) {
-                        $token->type = T_IDENTIFIER_OBJECT;
-                    } elseif (isValidIdentifier($token->value)) {
-                        $token->type = T_IDENTIFIER_VAR;
                     }
                 }
             }
@@ -207,12 +158,12 @@ class Lexer
             case self::$eol:    return T_EOL;
             case self::$space:  return T_SPACE;
             case self::$indent: return T_INDENT;
-            case '=':           return T_OPERATOR_ASSIGN;
-            case ':':           return T_OPERATOR_COLON;
-            case ',':           return T_OPERATOR_COMMA;
-            case '?':           return T_OPERATOR_QUESTION;
-            case '(':           return T_PARENTHESES_OPEN;
-            case ')':           return T_PARENTHESES_CLOSE;
+            case '=':           return T_ASSIGN_OPERATOR;
+            case ':':           return T_COLON_OPERATOR;
+            case ',':           return T_COMMA_OPERATOR;
+            case '?':           return T_QUESTION_OPERATOR;
+            case '(':           return T_OPEN_PARENTHESES;
+            case ')':           return T_CLOSE_PARENTHESES;
             case 'null': return T_NULL;
             case 'true': case 'false': return T_BOOLEAN;
             case 'class': case 'interface': case 'trait': return T_OBJECT;
@@ -222,16 +173,18 @@ class Lexer
                 if (ctype_punct($value)) {
                     return T_OPERATOR;
                 }
-                $fChar = substr($value, 0, 1); $lChar = substr($value, -1);
-                if ($fChar == "'" && $lChar == "'") {
+
+                $fChar = $value[0]; $lChar = substr($value, -1);
+                if ($fChar == '(' && $lChar == ')') {
+                    return T_EXPRESSION;
+                } elseif ($fChar == "'" && $lChar == "'") {
                     return T_STRING;
                 } elseif ($fChar == '"' && $lChar == '"') {
-                    return T_STRING_VAR;
+                    return T_STRING;
                 } elseif (is_numeric($value)) {
                     return T_NUMBER;
-                } elseif ($fChar == '(' && $lChar == ')') {
-                    return T_EXPRESSION;
                 }
+
                 $name = strtoupper("t_{$value}"); // !!
                 if (defined(__namespace__ .'\\'. $name)) {
                     return $name; // @tmp // constant($name);
