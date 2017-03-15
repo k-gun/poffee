@@ -1,4 +1,3 @@
-func setBookId(id):
-    if id < 1:
-        throw new Error("no valid id")
-    book.id = id
+func foo(name):
+    if name:
+        printf('hi %s', name)

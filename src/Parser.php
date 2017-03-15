@@ -15,7 +15,7 @@ class Parser
         $file = file($file);
         $tokens = [];
         foreach ($file as $i => $value) {
-            $tokens = array_merge($tokens, $this->lexer->doScan($i + 1, $value)->toArray());
+            $tokens = array_merge($tokens, $this->lexer->scan($i + 1, $value)->toArray());
         }
         $tokens = clear($tokens);
         prf($tokens);

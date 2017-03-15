@@ -6,28 +6,40 @@
         "index": 0
     },
     {
-        "value": "setBookId",
+        "value": "foo",
         "type": "T_NONE",
         "line": 1,
         "index": 1
     },
     {
-        "value": "id",
-        "type": "T_NONE",
+        "value": "(",
+        "type": "T_OPEN_PARENTHESES",
         "line": 1,
         "index": 2
+    },
+    {
+        "value": "name",
+        "type": "T_NONE",
+        "line": 1,
+        "index": 3
+    },
+    {
+        "value": ")",
+        "type": "T_CLOSE_PARENTHESES",
+        "line": 1,
+        "index": 4
     },
     {
         "value": ":",
         "type": "T_COLON_OPERATOR",
         "line": 1,
-        "index": 3
+        "index": 5
     },
     {
         "value": "\n",
         "type": "T_EOL",
         "line": 1,
-        "index": 4
+        "index": 6
     },
     {
         "value": "    ",
@@ -42,8 +54,8 @@
         "index": 1
     },
     {
-        "value": "id < 1",
-        "type": "T_EXPRESSION",
+        "value": "name",
+        "type": "T_NONE",
         "line": 2,
         "index": 2
     },
@@ -60,39 +72,39 @@
         "index": 4
     },
     {
-        "value": "        throw new Error(\"no valid id\")\n",
-        "type": "T_NONE",
+        "value": "        ",
+        "type": "T_INDENT",
         "line": 3,
         "index": 0
     },
     {
-        "value": "    ",
-        "type": "T_INDENT",
-        "line": 4,
-        "index": 0
-    },
-    {
-        "value": "book.id",
-        "type": "T_VAR_IDENTIFIER",
-        "line": 4,
+        "value": "printf",
+        "type": "T_NONE",
+        "line": 3,
         "index": 1
     },
     {
-        "value": "=",
-        "type": "T_ASSIGN_OPERATOR",
-        "line": 4,
+        "value": "(",
+        "type": "T_OPEN_PARENTHESES",
+        "line": 3,
         "index": 2
     },
     {
-        "value": "id",
-        "type": "T_NONE",
-        "line": 4,
+        "value": "'hi %s', name",
+        "type": "T_EXPRESSION",
+        "line": 3,
         "index": 3
+    },
+    {
+        "value": ")",
+        "type": "T_CLOSE_PARENTHESES",
+        "line": 3,
+        "index": 4
     },
     {
         "value": "\n",
         "type": "T_EOL",
-        "line": 4,
-        "index": 4
+        "line": 3,
+        "index": 5
     }
 ]

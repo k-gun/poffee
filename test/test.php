@@ -30,17 +30,6 @@ $parser->parse('book.poffee');
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 // $poffee = new Poffee\Poffee(__dir__);
 // $parser = $poffee->parse('book.poffee');
 

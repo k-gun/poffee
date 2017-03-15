@@ -55,6 +55,7 @@ function isValidExpression($input) {
         |(?:(\()?(?:\w+)\s*(?=\?:)\s*(.+)(\))?)                         # eg: a ?: 1
         |(?:(\()?(?:\w+)\s*(?=(or|and|ise?|not))\s*(.+)(\))?)           # eg: a or 1
         |(?:(\()?([a-z_]\w*)\s*(\()\s*(.+)\s*(\)))(\)?)                 # eg: foo(a), foo(a ...)
+        |(?:([\'"].*[\'"]\s*,(.*)))                                     # eg: "a", ...
         |(?:(\()\s*(.+)\s*(\)))                                         # eg: (a), (a ...)
     )$~ix', trim($input));
 }
@@ -75,24 +76,24 @@ class Lexer
         }
     }
 
-    public function doScan($line, $input)
+    public function scan($line, $input)
     {
         $lexer = new self(self::$indent);
         $lexer->line = $line;
         $pattern = '~
              (?:(\s+)?//\s*([^\r\n]+))                    # comment
-            |(?:(\s+)?(use)\s*([^\r\n]+))                     # use
-            |(?:(\s+)?(const)\s+([a-z_]\w*)\s*(=)\s*(.+))   # const
-            |(?:(\s+)?(abstract|final|static)?\s*(class)\s+(\w+)\s*
-                (?:(extends)\s+(\w+)\s*)?(?:(implements)\s+(\w+)\s*)?(:)) # class
-            |(?:(\s+)?(var|public|private|protected)\s+(\w+)(?:\s*(=)\s*([^\s]+))?) # function, property
-            |(?:(\s+)?(func(?:tion)?)\s+([a-z_]\w*)\s*\((.*)\)(:)) # function
-            |(?:(\s+)?(return)\s+(.+))                          # return
-            |(?:(\s+)?(if|else|else\s*if)\s+(.+)(:))         # condition
-            |(?:(\s+)?([a-z_]\w*)\s*(=)\s*([^\s]+))   # assign
-            |(?:(\s+)?([^\s]+)\s*([\<\>\!\=\*/\+\-%\|\^\~]+)\s*(.+)) # operators
-            #|(?:(.+))                          # any
-        ~ix';
+            | (?:(\s+)?(use)\s*([^\r\n]+))                     # use
+            | (?:(\s+)?(const)\s+([a-z_]\w*)\s*(=)\s*(.+))   # const
+            | (?:(\s+)?(abstract|final|static)?\s*(class)\s+(\w+)\s*
+                (?:(extends)\s+(\w+)\s*)?(?:(implements)\s+(\w+)\s*)?(:))   # class
+            | (?:(\s+)?(var|public|private|protected)\s+(\w+)(?:\s*(=)\s*([^\s]+))?) # function, property
+            | (?:(\s+)?(func(?:tion)?)\s+([a-z_]\w*)\s*(\()(.*)(\))(:)) # function
+            | (?:(\s+)?(return)\s+(.+))                          # return
+            | (?:(\s+)?(if|else|else\s*if)\s+(.+)(:))         # condition
+            | (?:(\s+)?([a-z_]\w*)\s*(\()(.*)(\)))
+            | (?:(\s+)?([^\s]+)\s*([\<\>\!\=\*/\+\-%\|\^\~]+)\s*(.+)) # operators // en sonda kalsin
+            #| (?:(.+))                          # any
+        ~iux';
         $matches = $lexer->getMatches($pattern, $input);
         pre($matches);
         return $lexer->generateTokens($matches);
@@ -172,11 +173,8 @@ class Lexer
             case 'class': case 'interface': case 'trait': return T_OBJECT;
             case 'func': case 'function': return T_FUNCTION;
             case 'abstract': case 'final': case 'static': case 'public': case 'private': case 'protected': case 'extends': case 'implements': T_MODIFIER;
+            case 'declare': case 'die': case 'echo': case 'empty': case 'eval': case 'exit': case 'include': case 'include_once': case 'isset': case 'list': case 'print': case 'require': case 'require_once': case 'unset': case '__halt_compiler': return T_FUNCTION_IDENTIFIER;
             default:
-                if (ctype_punct($value)) {
-                    return T_OPERATOR;
-                }
-
                 $fChar = $value[0]; $lChar = substr($value, -1);
                 if ($fChar == '(' && $lChar == ')') {
                     return T_EXPRESSION;
@@ -186,8 +184,9 @@ class Lexer
                     return T_STRING;
                 } elseif (is_numeric($value)) {
                     return T_NUMBER;
+                } elseif (ctype_punct($value)) {
+                    return T_OPERATOR;
                 }
-
                 $name = strtoupper("t_{$value}"); // !!
                 if (defined(__namespace__ .'\\'. $name)) {
                     return $name; // @tmp // constant($name);
