@@ -1,5 +1,2 @@
-func foo(name):
-    if name:
-        printf('hi %s', name)
-    name = 'kerem' + name
-    print(name)
+foreach books as id, name:
+    print(id, name)

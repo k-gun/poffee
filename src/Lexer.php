@@ -11,6 +11,7 @@ const T_ASSIGN_OPERATOR = 'T_ASSIGN_OPERATOR';
 const T_COLON_OPERATOR = 'T_COLON_OPERATOR';
 const T_COMMA_OPERATOR = 'T_COMMA_OPERATOR';
 const T_QUESTION_OPERATOR = 'T_QUESTION_OPERATOR';
+const T_COMMENT_OPERATOR = 'T_COMMENT_OPERATOR';
 
 const T_VAR = 'T_VAR';
 const T_OBJECT = 'T_OBJECT';
@@ -22,6 +23,7 @@ const T_RETURN = 'T_RETURN';
 const T_IF = 'T_IF';
 const T_ELSE = 'T_ELSE';
 const T_ELSE_IF = 'T_ELSE_IF';
+const T_LOOP = 'T_LOOP';
 const T_PARENTHESES_BLOCK = 'T_PARENTHESES_BLOCK';
 const T_OPEN_PARENTHESES = 'T_OPEN_PARENTHESES';
 const T_CLOSE_PARENTHESES = 'T_CLOSE_PARENTHESES';
@@ -49,14 +51,15 @@ function isValidIdentifier($input) {
 }
 function isValidExpression($input) {
     return !!preg_match('~^(
-         (?:(\()?(?:\w+)\s*(?=[\<\>\!\=\*/\+\-%\|\^\~]+)\s*(.+)(\))?)   # eg: a < 1 etc.
-        |(?:(\()?(?:\w+)\s*(?=\?)(.+)\s*(?=:)\s*(.+)(\))?)              # eg: a ? a : 1
-        |(?:(\()?(?:\w+)\s*(?=\?\?)\s*(.+)(\))?)                        # eg: a ?? 1
-        |(?:(\()?(?:\w+)\s*(?=\?:)\s*(.+)(\))?)                         # eg: a ?: 1
-        |(?:(\()?(?:\w+)\s*(?=(or|and|ise?|not))\s*(.+)(\))?)           # eg: a or 1
-        |(?:(\()?([a-z_]\w*)\s*(\()\s*(.+)\s*(\)))(\)?)                 # eg: foo(a), foo(a ...)
-        |(?:([\'"].*[\'"]\s*[,+]\s*(.*)))                               # eg: "a", ..., "a" + ...
-        |(?:(\()\s*(.+)\s*(\)))                                         # eg: (a), (a ...)
+          (?:(\()?(?:\w+)\s*(?=[\<\>\!\=\*/\+\-%\|\^\~]+)\s*(.+)(\))?)     # eg: a < 1 etc.
+        | (?:(\()?(?:\w+)\s*(?=\?)(.+)\s*(?=:)\s*(.+)(\))?)                # eg: a ? a : 1
+        | (?:(\()?(?:\w+)\s*(?=\?\?)\s*(.+)(\))?)                          # eg: a ?? 1
+        | (?:(\()?(?:\w+)\s*(?=\?:)\s*(.+)(\))?)                           # eg: a ?: 1
+        | (?:(\()?(?:\w+)\s*(?=(or|and|ise?|not|as))\s*(.+)(\))?)             # eg: a or 1
+        | (?:(\()?([a-z_]\w*)\s*(\()\s*(.+)\s*(\)))(\)?)                   # eg: foo(a), foo(a ...)
+        | (?:([\'"].*[\'"]\s*[,+]\s*(.*)))                                 # eg: "a", ..., "a" + ...
+        | (?:(\()\s*(.+)\s*(\)))                                           # eg: (a), (a ...)
+        | (?:(?:([a-z_]\w*)([+-]{2})|([a-z_]\w*)\[([a-z_]\w*)([+-]{2})\])) # eg: i++, a[i++]
     )$~ix', trim($input));
 }
 
@@ -81,18 +84,20 @@ class Lexer
         $lexer = new self(self::$indent);
         $lexer->line = $line;
         $pattern = '~
-             (?:(\s+)?//\s*([^\r\n]+))                    # comment
-            | (?:(\s+)?(use)\s*([^\r\n]+))                     # use
+              (?:(\s+)?(//)\s*(.+))                    # comment
+            | (?:(\s+)?(use)\s*(.+))                     # use
             | (?:(\s+)?(const)\s+([a-z_]\w*)\s*(=)\s*(.+))   # const
             | (?:(\s+)?(abstract|final|static)?\s*(class)\s+(\w+)\s*
                 (?:(extends)\s+(\w+)\s*)?(?:(implements)\s+(\w+)\s*)?(:))   # class
             | (?:(\s+)?(var|public|private|protected)\s+(\w+)(?:\s*(=)\s*([^\s]+))?) # function, property
-            | (?:(\s+)?(func(?:tion)?)\s+([a-z_]\w*)\s*(\()(.*)(\))(:)) # function
+            | (?:(\s+)?(func(?:tion)?)\s+([a-z_]\w*)\s*(\()(.*)(\))\s*(:)) # function
+            | (?:(\s+)?(for|foreach|while)\s+(.+)\s*(:))                          # loop
             | (?:(\s+)?(return)\s+(.+))                          # return
             | (?:(\s+)?(if|else|else\s*if)\s+(.+)(:))         # condition
             | (?:(\s+)?([a-z_]\w*)\s*(\()(.*)(\)))
             | (?:(\s+)?([^\s]+)\s*([\<\>\!\=\*/\+\-%\|\^\~]+)\s*(.+)) # operators // en sonda kalsin
-            #| (?:(.+))                          # any
+            #| (?:(\s+)?(//)\s*(.*)([\r\n]))                    # comment
+            #| (?:(.))                          # any
         ~iux';
         $matches = $lexer->getMatches($pattern, $input);
         pre($matches);
@@ -166,10 +171,12 @@ class Lexer
             case ':':           return T_COLON_OPERATOR;
             case ',':           return T_COMMA_OPERATOR;
             case '?':           return T_QUESTION_OPERATOR;
+            case '//':           return T_COMMENT_OPERATOR;
             case '(':           return T_OPEN_PARENTHESES;
             case ')':           return T_CLOSE_PARENTHESES;
             case 'null': return T_NULL;
             case 'true': case 'false': return T_BOOLEAN;
+            case 'for': case 'foreach': case 'while': return T_LOOP;
             case 'class': case 'interface': case 'trait': return T_OBJECT;
             case 'func': case 'function': return T_FUNCTION;
             case 'abstract': case 'final': case 'static': case 'public': case 'private': case 'protected': case 'extends': case 'implements': T_MODIFIER;
