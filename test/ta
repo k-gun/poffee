@@ -1,15 +1,21 @@
 [
     {
-        "value": "if",
-        "type": "T_IF",
+        "value": "func",
+        "type": "T_FUNCTION",
         "line": 1,
         "index": 0
     },
     {
-        "value": "a < 1",
+        "value": "foo",
+        "type": "T_IDENTIFIER_FUNCTION",
+        "line": 1,
+        "index": 1
+    },
+    {
+        "value": "a = 1, b = null",
         "type": "T_EXPRESSION",
         "line": 1,
-        "index": 1,
+        "index": 2,
         "children": [
             {
                 "value": "a",
@@ -18,8 +24,8 @@
                 "index": 0
             },
             {
-                "value": "<",
-                "type": "T_OPERATOR",
+                "value": "=",
+                "type": "T_OPERATOR_ASSIGN",
                 "line": 1,
                 "index": 1
             },
@@ -28,6 +34,30 @@
                 "type": "T_NUMBER",
                 "line": 1,
                 "index": 2
+            },
+            {
+                "value": ",",
+                "type": "T_OPERATOR_COMMA",
+                "line": 1,
+                "index": 3
+            },
+            {
+                "value": "b",
+                "type": "T_EXPRESSION",
+                "line": 1,
+                "index": 4
+            },
+            {
+                "value": "=",
+                "type": "T_OPERATOR_ASSIGN",
+                "line": 1,
+                "index": 5
+            },
+            {
+                "value": "null",
+                "type": "T_NULL",
+                "line": 1,
+                "index": 6
             }
         ]
     },
@@ -35,56 +65,12 @@
         "value": ":",
         "type": "T_OPERATOR_COLON",
         "line": 1,
-        "index": 2
+        "index": 3
     },
     {
         "value": "\n",
         "type": "T_EOL",
         "line": 1,
-        "index": 3
-    },
-    {
-        "value": "    ",
-        "type": "T_INDENT",
-        "line": 2,
-        "index": 0
-    },
-    {
-        "value": "return",
-        "type": "T_RETURN",
-        "line": 2,
-        "index": 1
-    },
-    {
-        "value": "a + 1",
-        "type": "T_EXPRESSION",
-        "line": 2,
-        "index": 2,
-        "children": [
-            {
-                "value": "a",
-                "type": "T_IDENTIFIER_VAR",
-                "line": 2,
-                "index": 0
-            },
-            {
-                "value": "+",
-                "type": "T_OPERATOR",
-                "line": 2,
-                "index": 1
-            },
-            {
-                "value": "1",
-                "type": "T_NUMBER",
-                "line": 2,
-                "index": 2
-            }
-        ]
-    },
-    {
-        "value": "\n",
-        "type": "T_EOL",
-        "line": 2,
-        "index": 3
+        "index": 4
     }
 ]

@@ -9,6 +9,7 @@ const T_SPACE = 'T_SPACE'; // -3;
 const T_OPERATOR = 'T_OPERATOR';
 const T_OPERATOR_ASSIGN = 'T_OPERATOR_ASSIGN';
 const T_OPERATOR_COLON = 'T_OPERATOR_COLON';
+const T_OPERATOR_COMMA = 'T_OPERATOR_COMMA';
 const T_OPERATOR_QUESTION = 'T_OPERATOR_QUESTION';
 
 const T_VAR = 'T_VAR';
@@ -21,12 +22,16 @@ const T_RETURN = 'T_RETURN';
 const T_IF = 'T_IF';
 const T_ELSE = 'T_ELSE';
 const T_ELSE_IF = 'T_ELSE_IF';
-const T_PARENTHESIS_BLOCK = 'T_PARENTHESIS_BLOCK';
+const T_PARENTHESES_BLOCK = 'T_PARENTHESES_BLOCK';
+const T_PARENTHESES_OPEN = 'T_PARENTHESES_OPEN';
+const T_PARENTHESES_CLOSE = 'T_PARENTHESES_CLOSE';
 
 const T_IDENTIFIER = 'T_IDENTIFIER';
 const T_IDENTIFIER_VAR = 'T_IDENTIFIER_VAR';
+const T_IDENTIFIER_FUNCTION = 'T_IDENTIFIER_FUNCTION';
 const T_IDENTIFIER_OBJECT = 'T_IDENTIFIER_OBJECT';
 const T_IDENTIFIER_PROPERTY = 'T_IDENTIFIER_PROPERTY';
+const T_IDENTIFIER_METHOD = 'T_IDENTIFIER_METHOD';
 
 const T_EXPRESSION = 'T_EXPRESSION';
 
@@ -39,35 +44,21 @@ const T_BOOLEAN = 'T_BOOLEAN';
 const T_FUNCTION = 'T_FUNCTION';
 const T_FUNCTION_CALL = 'T_FUNCTION_CALL';
 
-// const KEYWORDS = ['__halt_compiler', 'abstract', 'and', 'array', 'as', 'break',
-// 'callable', 'case', 'catch', 'class', 'clone', 'const', 'continue', 'declare', 'default',
-// 'die', 'do', 'echo', 'else', 'elseif', 'empty', 'enddeclare', 'endfor', 'endforeach', 'endif',
-// 'endswitch', 'endwhile', 'eval', 'exit', 'extends', 'final', 'finally', 'for', 'foreach',
-// 'function', 'global', 'goto', 'if', 'implements', 'include', 'include_once', 'instanceof',
-// 'insteadof', 'interface', 'isset', 'list', 'namespace', 'new', 'or', 'print', 'private',
-// 'protected', 'public', 'require', 'require_once', 'return', 'static', 'switch', 'throw',
-// 'trait', 'try', 'unset', 'use', 'var', 'while', 'xor', 'yield'];
-const KEYWORDS_OBJECT = ['class', 'interface', 'trait', 'function'];
-const KEYWORDS_MODIFIER = ['abstract', 'final', 'static', 'public', 'private', 'protected', 'extends', 'implements'];
-const KEYWORDS_FUNCTION = ['declare', 'die', 'echo', 'empty', 'eval', 'exit',
-    'include', 'include_once', 'isset', 'list', 'print', 'require', 'require_once', 'unset',
-    '__halt_compiler'];
-const KEYWORDS_CONDITION = ['if', 'else', 'elseif', 'else if'];
-const KEYWORDS_LOOP = ['for', 'foreach', 'while'];
-const KEYWORDS_BOOLEAN = ['true', 'false'];
-
 // cache these!
 function isValidIdentifier($s) {
-    return preg_match('~^(?:[a-z_]\w*)$~i', $s);
+    return !!preg_match('~^(?:[a-z_]\w*)$~i', $s);
 }
 function isValidExpression($s) {
-    return preg_match('~^(
-         (?:(?:[a-z_]\w*)\s*(?=[\<\>\!\=\*/\+\-%\|\^\~]+)\s*(.+)) # eg: a < 1
-        |(?:(?:[a-z_]\w*)\s*(?=\?)(.+)\s*(?=:)\s*(.+))            # eg: a ? a : 1
-        |(?:(?:[a-z_]\w*)\s*(?=\?\?)\s*(.+))                      # eg: a ?? 1
-        |(?:(?:[a-z_]\w*)\s*(?=\?:)\s*(.+))                       # eg: a ?: 1
-    )$~ix', $s);
+    return !!preg_match('~^(
+         (?:(\()?(?:[a-z_]\w*)\s*(?=[\<\>\!\=\*/\+\-%\|\^\~]+)\s*(.+)(\))?) # eg: a < 1
+        |(?:(\()?(?:[a-z_]\w*)\s*(?=\?)(.+)\s*(?=:)\s*(.+)(\))?)            # eg: a ? a : 1
+        |(?:(\()?(?:[a-z_]\w*)\s*(?=\?\?)\s*(.+)(\))?)                      # eg: a ?? 1
+        |(?:(\()?(?:[a-z_]\w*)\s*(?=\?:)\s*(.+)(\))?)                       # eg: a ?: 1
+        |(?:(\()\s*(.+)\s*(\)))                                             # eg: (a), (a ...)
+    )$~ix', trim($s));
 }
+// prd("\x7f-\xff");
+// prd(isValidExpression('(a) '));
 
 class Lexer
 {
@@ -91,17 +82,33 @@ class Lexer
         $pattern = '~
              (?:(\s+)?//\s*([^\r\n]+))                    # comment
             |(?:(\s+)?(use)\s*([^\r\n]+))                     # use
-            |(?:(\s+)?(const)\s+([a-z_][a-z0-9_]*)\s*(=)\s*(.+))   # const
+            |(?:(\s+)?(const)\s+([a-z_]\w*)\s*(=)\s*(.+))   # const
             |(?:(\s+)?(abstract|final|static)?\s*(class)\s+(\w+)\s*
                 (?:(extends)\s+(\w+)\s*)?(?:(implements)\s+(\w+)\s*)?(:)) # class
-            |(?:(\s+)?(var|public|private|protected)\s+(\w+)(?:\s*(=)\s*([^\s]+))?) # function, property
+            #|(?:(\s+)?(var|public|private|protected)\s+(\w+)(?:\s*(=)\s*([^\s]+))?) # function, property
+            |(?:(\s+)?(func(?:tion)?)\s+([a-z_]\w*)\s*\((.+)\)(:)) # function
             |(?:(\s+)?(return)\s+(.+))                          # return
             |(?:(\s+)?(if|else|else\s*if)\s+(.+)(:))         # condition
-            |(?:(\s+)?([a-z_][a-z0-9_]*)\s*(=)\s*([^\s]+))   # assign
+            |(?:(\s+)?([a-z_]\w*)\s*(=)\s*([^\s]+))   # assign
             |(?:(\s+)?([^\s]+)\s*([\<\>\!\=\*/\+\-%\|\^\~]+)\s*(.+)) # operators
-            #|(?:(\s+)?('. join('|', KEYWORDS_FUNCTION) .')\s*\((.+)\))
-            #|(?:(\s+)?\s+|(.))                          # any
+            #|(?:(.+))                          # any
         ~ix';
+        $matches = $lexer->getMatches($pattern, $input);
+        pre($matches);
+        return $lexer->generateTokens($matches);
+    }
+    public function scanFunctionExpression($line, $input)
+    {
+        $lexer = new self(self::$indent);
+        $lexer->line = $line;
+        $pattern = '~(?:
+            (\()? # open parentheses
+                \s*((\?)?[a-z_]\w*)?             # typehint
+                \s*(&)?                          # reference
+                \s*([a-z_]\w*)                   # variable name
+                \s*(?:(=)\s*(\w+|[\'"].*[\'"]))? # variable default value
+            (\))? # close parentheses
+        )~ix';
         $matches = $lexer->getMatches($pattern, $input);
         pre($matches);
         return $lexer->generateTokens($matches);
@@ -129,16 +136,22 @@ class Lexer
 
         $tokens = new Tokens($tokens);
         if (!$tokens->isEmpty()) {
-            $modifierFinal = $modifierAbstract = null;
             while ($token = $tokens->next()) {
+                $prev = $token->prev(); $next = $token->next();
                 // at first
                 if ($token->type == T_NONE) {
                     if (isValidExpression($token->value)) {
                         $token->type = T_EXPRESSION;
                     }
                 }
+
                 if ($token->type == T_EXPRESSION) {
-                    $children = $this->doScan($token->line, $token->value);
+                    $children = null;
+                    if ($prev->type == T_IDENTIFIER_FUNCTION) {
+                        $children = $this->scanFunctionExpression($token->line, $token->value);
+                    } else {
+                        // $children = $this->scanExpression($token->line, $token->value);
+                    }
                     if ($children) {
                         if ($children->first->value != $token->value) {
                             $token->children = new Tokens($children->toArray());
@@ -152,25 +165,33 @@ class Lexer
                         }
                     }
                 }
-                if ($token->hasPrev()) {
-                    $prev = $token->prev();
+
+                if ($prev) {
                     if ($token->value == 'extends') {
                         $prev->type = T_IDENTIFIER_OBJECT;
                     }
-                    if ($prev->type == T_NONE &&
-                            ($token->type == T_OPERATOR || $token->type == T_OPERATOR_ASSIGN)) {
+                    if ($prev->type == T_NONE && ($token->type == T_OPERATOR || $token->type == T_OPERATOR_ASSIGN)) {
                         $prev->type = T_IDENTIFIER_VAR;
                     }
                 }
-                if ($token->hasNext()) {
-                    $next = $token->next();
+                if ($next) {
                     if ($token->value == 'extends' || $token->value == 'implements') {
                         $next->type = T_IDENTIFIER_OBJECT;
                     }
+                    if ($next->type == T_NONE) {
+                        if ($token->type == T_FUNCTION) {
+                            $next->type = T_IDENTIFIER_FUNCTION;
+                        } else {
+                            $next->type = T_EXPRESSION;
+                        }
+                    }
                 }
+
                 // at last
                 if ($token->type == T_NONE) {
-                    if (isValidIdentifier($token->value)) {
+                    if ($prev && $prev->type == T_OBJECT) {
+                        $token->type = T_IDENTIFIER_OBJECT;
+                    } elseif (isValidIdentifier($token->value)) {
                         $token->type = T_IDENTIFIER_VAR;
                     }
                 }
@@ -188,17 +209,18 @@ class Lexer
             case self::$indent: return T_INDENT;
             case '=':           return T_OPERATOR_ASSIGN;
             case ':':           return T_OPERATOR_COLON;
+            case ',':           return T_OPERATOR_COMMA;
             case '?':           return T_OPERATOR_QUESTION;
+            case '(':           return T_PARENTHESES_OPEN;
+            case ')':           return T_PARENTHESES_CLOSE;
             case 'null': return T_NULL;
             case 'true': case 'false': return T_BOOLEAN;
+            case 'class': case 'interface': case 'trait': return T_OBJECT;
+            case 'func': case 'function': return T_FUNCTION;
+            case 'abstract': case 'final': case 'static': case 'public': case 'private': case 'protected': case 'extends': case 'implements': T_MODIFIER;
             default:
                 if (ctype_punct($value)) {
                     return T_OPERATOR;
-                }
-                if (in_array($value, KEYWORDS_OBJECT)) {
-                    return T_OBJECT;
-                } elseif (in_array($value, KEYWORDS_MODIFIER)) {
-                    return T_MODIFIER;
                 }
                 $fChar = substr($value, 0, 1); $lChar = substr($value, -1);
                 if ($fChar == "'" && $lChar == "'") {
@@ -208,7 +230,7 @@ class Lexer
                 } elseif (is_numeric($value)) {
                     return T_NUMBER;
                 } elseif ($fChar == '(' && $lChar == ')') {
-                    return T_PARENTHESIS_BLOCK;
+                    return T_EXPRESSION;
                 }
                 $name = strtoupper("t_{$value}"); // !!
                 if (defined(__namespace__ .'\\'. $name)) {
