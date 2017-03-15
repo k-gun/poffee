@@ -1,74 +1,98 @@
 [
     {
-        "value": "a",
-        "type": "T_VAR_IDENTIFIER",
+        "value": "func",
+        "type": "T_FUNCTION",
         "line": 1,
         "index": 0
     },
     {
-        "value": "=",
-        "type": "T_ASSIGN_OPERATOR",
+        "value": "setBookId",
+        "type": "T_NONE",
         "line": 1,
         "index": 1
     },
     {
-        "value": "1",
-        "type": "T_NUMBER",
+        "value": "id",
+        "type": "T_NONE",
         "line": 1,
         "index": 2
+    },
+    {
+        "value": ":",
+        "type": "T_COLON_OPERATOR",
+        "line": 1,
+        "index": 3
     },
     {
         "value": "\n",
         "type": "T_EOL",
         "line": 1,
-        "index": 3
+        "index": 4
+    },
+    {
+        "value": "    ",
+        "type": "T_INDENT",
+        "line": 2,
+        "index": 0
     },
     {
         "value": "if",
         "type": "T_IF",
         "line": 2,
-        "index": 0
+        "index": 1
     },
     {
-        "value": "a < 1",
+        "value": "id < 1",
         "type": "T_EXPRESSION",
         "line": 2,
-        "index": 1
+        "index": 2
     },
     {
         "value": ":",
         "type": "T_COLON_OPERATOR",
         "line": 2,
-        "index": 2
+        "index": 3
     },
     {
         "value": "\n",
         "type": "T_EOL",
         "line": 2,
-        "index": 3
+        "index": 4
     },
     {
-        "value": "    ",
-        "type": "T_INDENT",
+        "value": "        throw new Error(\"no valid id\")\n",
+        "type": "T_NONE",
         "line": 3,
         "index": 0
     },
     {
-        "value": "return",
-        "type": "T_RETURN",
-        "line": 3,
+        "value": "    ",
+        "type": "T_INDENT",
+        "line": 4,
+        "index": 0
+    },
+    {
+        "value": "book.id",
+        "type": "T_VAR_IDENTIFIER",
+        "line": 4,
         "index": 1
     },
     {
-        "value": "a + 1",
-        "type": "T_EXPRESSION",
-        "line": 3,
+        "value": "=",
+        "type": "T_ASSIGN_OPERATOR",
+        "line": 4,
         "index": 2
+    },
+    {
+        "value": "id",
+        "type": "T_NONE",
+        "line": 4,
+        "index": 3
     },
     {
         "value": "\n",
         "type": "T_EOL",
-        "line": 3,
-        "index": 3
+        "line": 4,
+        "index": 4
     }
 ]

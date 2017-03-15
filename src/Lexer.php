@@ -53,8 +53,8 @@ function isValidExpression($input) {
         |(?:(\()?(?:\w+)\s*(?=\?)(.+)\s*(?=:)\s*(.+)(\))?)              # eg: a ? a : 1
         |(?:(\()?(?:\w+)\s*(?=\?\?)\s*(.+)(\))?)                        # eg: a ?? 1
         |(?:(\()?(?:\w+)\s*(?=\?:)\s*(.+)(\))?)                         # eg: a ?: 1
-        |(?:(\()?(?:\w+)\s*(?=(or|and))\s*(.+)(\))?)                    # eg: a or 1
-        |(?:(\()?(\w+)\s*(\()\s*(.+)\s*(\)))(\)?)                       # eg: foo(a), foo(a ...)
+        |(?:(\()?(?:\w+)\s*(?=(or|and|ise?|not))\s*(.+)(\))?)           # eg: a or 1
+        |(?:(\()?([a-z_]\w*)\s*(\()\s*(.+)\s*(\)))(\)?)                 # eg: foo(a), foo(a ...)
         |(?:(\()\s*(.+)\s*(\)))                                         # eg: (a), (a ...)
     )$~ix', trim($input));
 }
@@ -85,8 +85,8 @@ class Lexer
             |(?:(\s+)?(const)\s+([a-z_]\w*)\s*(=)\s*(.+))   # const
             |(?:(\s+)?(abstract|final|static)?\s*(class)\s+(\w+)\s*
                 (?:(extends)\s+(\w+)\s*)?(?:(implements)\s+(\w+)\s*)?(:)) # class
-            #|(?:(\s+)?(var|public|private|protected)\s+(\w+)(?:\s*(=)\s*([^\s]+))?) # function, property
-            |(?:(\s+)?(func(?:tion)?)\s+([a-z_]\w*)\s*\((.+)\)(:)) # function
+            |(?:(\s+)?(var|public|private|protected)\s+(\w+)(?:\s*(=)\s*([^\s]+))?) # function, property
+            |(?:(\s+)?(func(?:tion)?)\s+([a-z_]\w*)\s*\((.*)\)(:)) # function
             |(?:(\s+)?(return)\s+(.+))                          # return
             |(?:(\s+)?(if|else|else\s*if)\s+(.+)(:))         # condition
             |(?:(\s+)?([a-z_]\w*)\s*(=)\s*([^\s]+))   # assign
@@ -126,9 +126,12 @@ class Lexer
             } else {
                 $type = $this->getType($value);
             }
+            $indent = -1;
+            // if ($type != T_INDENT) {
+            //     while ($indent < $length && $value[++$indent] == ' ') {}
+            // }
             $start = $match[1]; $end = $start + $length;
-            $token = ['value' => $value, 'type' => $type, 'line' => $this->line,
-                // 'length' => [$length, $start, $end],
+            $token = ['value' => $value, 'type' => $type, 'line' => $this->line, //'indent' => $indent,
                 // 'length' => $length, 'start' => $start, 'end' => $end, 'children' => null
             ];
             $tokens[] = $token;
