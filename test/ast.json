@@ -1,20 +1,26 @@
 [
     {
-        "value": "\/\/",
-        "type": "T_COMMENT_OPERATOR",
+        "value": "class",
+        "type": "T_OBJECT",
         "line": 1,
         "index": 0
     },
     {
-        "value": "class Book:",
-        "type": "T_COMMENT_CONTENT",
+        "value": "Book",
+        "type": "T_NONE",
         "line": 1,
         "index": 1
+    },
+    {
+        "value": ":",
+        "type": "T_COLON",
+        "line": 1,
+        "index": 2
     },
     {
         "value": "\n",
         "type": "T_EOL",
         "line": 1,
-        "index": 2
+        "index": 3
     }
 ]

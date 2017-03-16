@@ -2,19 +2,19 @@
 declare(strict_types=1); namespace Poffee;
 
 // cache these?
-function isValidIdentifier($input) {
+function isValidID($input) {
     return !!preg_match('~^(?:[a-z_]\w*)$~i', $input);
 }
 
 const RE_ID = '[a-z_]\w*';
 const RE_STRING = '[\'"].*[\'"]';
-const RE_OPERATOR = '[\<\>\!\=\*/\+\-%\|\^\~]';
+const RE_OPR = '[\<\>\!\=\*/\+\-%\|\^\~]';
 const RE_FUNCTION_ARGS = ' ,\w\.\=\(\)\[\]\'\"';
 
 function isValidExpression($input) {
     pre($input);
     $pattern[] = sprintf('(?<NOT>(\!)(\w+)|(not)\s+(\w+))');
-    $pattern[] = sprintf('(?<OPERATOR>(\w+)\s*(%s+)\s*(\w+)?)', RE_OPERATOR);
+    $pattern[] = sprintf('(?<OPR>(\w+)\s*(%s+)\s*(\w+)?)', RE_OPR);
     $pattern[] = sprintf('(?<CALLABLE_CALL>(?:(new)\s+)?([a-z_]\w*)\s*(\()(.*)(\)))');
     $pattern[] = sprintf('(?<METHOD_CALL>(?:(new)\s+)?([a-z_][%s]*)\s*(\.)([a-z_]\w*)\s*(\()(.*)(\)))', RE_FUNCTION_ARGS);
     $pattern[] = sprintf('(?<PROPERTY>(?:[a-z_]\w*)\.(?:[a-z_]\w*)(?:\..+)?)');
@@ -115,23 +115,23 @@ class Lexer extends LexerBase
                 $prev = $token->prev(); $prevType = $prev ? $prev->type : null;
                 $next = $token->next(); $nextType = $next ? $next->type : null;
                 if ($token->type == T_NONE) {
-                    if ($prevType == T_COMMENT_OPERATOR) {
+                    if ($prevType == T_COMMENT_OPR) {
                         $token->type = T_COMMENT_CONTENT;
                     } elseif ($prevType == T_DECLARE) {
-                        $token->type = T_DECLARE_EXPRESSION;
+                        $token->type = T_DECLARE_EXPR;
                     } elseif ($prevType == T_NAMESPACE) {
-                        $token->type = T_NAMESPACE_EXPRESSION;
+                        $token->type = T_NAMESPACE_EXPR;
                     } elseif ($prevType == T_USE) {
-                        $token->type = T_USE_EXPRESSION;
-                    } elseif ($nextType == T_ASSIGN_OPERATOR) {
-                        $token->type = T_VAR_IDENTIFIER;
+                        $token->type = T_USE_EXPR;
+                    } elseif ($nextType == T_ASSIGN_OPR) {
+                        $token->type = T_VAR_ID;
                     } elseif ($expression = isValidExpression($token->value)) {
-                        $token->type = getTokenTypeFromConst($expression['type'].'_expression');
+                        $token->type = getTokenTypeFromConst($expression['type'].'_expr');
                         if ($token->type) {
                             // $token->children = $this->generateTokens(array_slice($expression, 2), 1);
                         }
-                    } elseif ($prevType == T_ASSIGN_OPERATOR) {
-                        $token->type = T_EXPRESSION;
+                    } elseif ($prevType == T_ASSIGN_OPR) {
+                        $token->type = T_EXPR;
                     }
                 }
             }
@@ -147,16 +147,16 @@ class Lexer extends LexerBase
             case self::$space:  return T_SPACE;
             case self::$indent: return T_INDENT;
             case 'declare': return T_DECLARE;
-            case '=':           return T_ASSIGN_OPERATOR;
+            case '=':           return T_ASSIGN_OPR;
             case '.':           return T_DOT;
             case ':':           return T_COLON;
             case ',':           return T_COMMA;
             case '?':           return T_QUESTION;
-            case '//':          return T_COMMENT_OPERATOR;
-            case '(':           return T_OPEN_PARENTHESES;
-            case ')':           return T_CLOSE_PARENTHESES;
-            case '[':           return T_OPEN_BRACKET;
-            case ']':           return T_CLOSE_BRACKET;
+            case '//':          return T_COMMENT_OPR;
+            case '(':           return T_OPEN_PRNT;
+            case ')':           return T_CLOSE_PRNT;
+            case '[':           return T_OPEN_BRKT;
+            case ']':           return T_CLOSE_BRKT;
             case 'null':
                 return T_NULL;
             case 'true': case 'false':
@@ -170,11 +170,11 @@ class Lexer extends LexerBase
             case 'new': case 'abstract': case 'final': case 'static': case 'public': case 'private': case 'protected': case 'extends': case 'implements':
                 return T_MODIFIER;
             case 'declare': case 'die': case 'echo': case 'empty': case 'eval': case 'exit': case 'include': case 'include_once': case 'isset': case 'list': case 'print': case 'require': case 'require_once': case 'unset': case '__halt_compiler':
-                return T_FUNCTION_IDENTIFIER;
+                return T_FUNCTION_ID;
             default:
                 $fChar = $value[0]; $lChar = substr($value, -1);
                 if ($fChar == '(' && $lChar == ')') {
-                    // return T_EXPRESSION; ?? // yukarda isValidExpression sorgusunu engelliyor
+                    // return T_EXPR; ?? // yukarda isValidExpression sorgusunu engelliyor
                 }
                 if ($fChar == "'" && $lChar == "'") {
                     return T_STRING;
@@ -185,8 +185,8 @@ class Lexer extends LexerBase
                 if (is_numeric($value)) {
                     return T_NUMBER;
                 }
-                if (preg_match(RE_OPERATOR, $value)) {
-                    return T_OPERATOR;
+                if (preg_match(RE_OPR, $value)) {
+                    return T_OPR;
                 }
                 $name = strtoupper("t_{$value}"); // !!
                 if (defined(__namespace__ .'\\'. $name)) {
