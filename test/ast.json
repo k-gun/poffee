@@ -30,33 +30,21 @@
         "index": 0
     },
     {
-        "value": "const",
-        "type": "T_CONST",
+        "value": "var",
+        "type": "T_VAR",
         "line": 2,
         "index": 1
     },
     {
         "value": "id",
-        "type": "T_CONST_ID",
+        "type": "T_VAR_PUBLIC",
         "line": 2,
         "index": 2
-    },
-    {
-        "value": "=",
-        "type": "T_ASSIGN_OPR",
-        "line": 2,
-        "index": 3
-    },
-    {
-        "value": "'aaa'",
-        "type": "T_STRING",
-        "line": 2,
-        "index": 4
     },
     {
         "value": "\n",
         "type": "T_EOL",
         "line": 2,
-        "index": 5
+        "index": 3
     }
 ]

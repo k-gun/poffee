@@ -1,2 +1,2 @@
 object Book:
-    const id = 'aaa'
+    var id

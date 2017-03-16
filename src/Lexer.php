@@ -64,7 +64,11 @@ class Lexer extends LexerBase
                 (?:\s*(>>)\s+([a-z_](?:[\w,\s]*)))?     # implements
               (:))
             | (?:(^\s+)                                 # var (static?)
-                (?:(var)\s+([a-z_]\w*)(?:\s*(=)\s*(.+))?)
+                (?:(var)
+                    (?:\s+(@|@@)\s*)?                   # private, protected
+                       \s+([a-z_]\w*)                   # public
+                    (?:\s*(=)\s*(.+))?
+                )
              )
             #| (?:(^\s+)?([a-z_]\w*)\s*(=)\s*(.+))       # assign
         ~ix';
@@ -120,13 +124,11 @@ class Lexer extends LexerBase
                 $prev = $token->prev(); $prevType = $prev ? $prev->type : null;
                 $next = $token->next(); $nextType = $next ? $next->type : null;
                 if (!$type) {
-                    pre($prevType);
                     switch ($prevType) {
                         case T_COMMENT_OPR:     $type = T_COMMENT_CONTENT; break;
                         case T_DECLARE:         $type = T_DECLARE_EXPR;    break;
                         case T_MODULE:          $type = T_MODULE_EXPR;  break;
                         case T_USE:             $type = T_USE_EXPR;        break;
-                        case T_CONST:           $type = T_CONST_ID;      break;
                         case T_OBJECT:          $type = T_OBJECT_ID; break;
                         case T_OBJECT_ID:
                             if ($token->value === C_EXTENDS) {
@@ -135,19 +137,25 @@ class Lexer extends LexerBase
                             } elseif ($token->value === C_IMPLEMENTS) {
                                 $type = T_IMPLEMENTS_MODF;
                                 $nextType = T_OBJECT_ID;
-                            // } else {
-                                // throw new \Exception("..");
+                            // } else  error ?
                             }
                             break;
                         case T_VAR:
                             if ($token->value === C_VAR_PRIVATE) {
-                                $type = T_VAR_PRIVATE;
+                                $type = T_VAR_PRIVATE_MODF;
+                                $nextType = T_VAR_PRIVATE;
                             } elseif ($token->value === C_VAR_PROTECTED) {
-                                $type = T_VAR_PROTECTED;
+                                $type = T_VAR_PROTECTED_MODF;
+                                $nextType = T_VAR_PROTECTED;
                             } else {
                                 $type = T_VAR_PUBLIC;
                             }
                             break;
+                        case T_CONST: $type = T_CONST_ID; break; // public,private,protected (7.1) ??
+                        // case T_VAR_PRIVATE:
+                        // case T_VAR_PROTECTED:
+                        //     $type = T_VAR;
+                        //     break;
                     }
                     if (!$type) {
                         // pre($token->value, $prevType, $nextType);
@@ -166,8 +174,8 @@ class Lexer extends LexerBase
                     }
 
                     $token->type = $type;
-                    if ($prev) $prev->type = $prevType;
-                    if ($next) $next->type = $nextType;
+                    if ($prev && $prevType) $prev->type = $prevType;
+                    if ($next && $nextType) $next->type = $nextType;
                 }
             }
         }
