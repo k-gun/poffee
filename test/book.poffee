@@ -1,0 +1,2 @@
+fun getBook(id):
+    return db.book.get(id)

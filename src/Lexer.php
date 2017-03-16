@@ -89,7 +89,16 @@ class Lexer extends LexerBase
                        \s+([a-z_]\w*)                   # name
                     (?:\s*(\(.*\)))                     # arguments
                 )
-                (:)(?:\s*([a-z_]\w*))?                  # return type
+                (:)                                     # colon
+                (?:\s*([a-z_]\w*))?                     # return type
+              )
+            | (?:(^\s+)?
+                (?:(fun)
+                    (?:\s+([a-z_]\w*))
+                    (?:\s*(\(.*\)))                     # arguments
+                    (:)                                 # colon
+                    (?:\s*([a-z_]\w*))?                 # return type
+                )
               )
             | (?:(^\s+)?(return)\s*(.+))                # return
             #| (?:(^\s+)?([a-z_]\w*)\s*(=)\s*(.+))       # assign
@@ -195,10 +204,15 @@ class Lexer extends LexerBase
                         } elseif ($t->value === C_PROTECTED) {
                             $t->type = T_PROTECTED;
                         } elseif ($t->value[0] === '(') {
-                            $t->type = T_FUN_ARG_EXPR;
+                            $t->type = T_FUN_ARGS_EXPR;
                             $t->prev->type = T_FUN_ID;
                         }
                     }
+                } elseif ($tokenType === T_RETURN) {
+                    if (!$next->type) {
+                        $next->type = T_RETURN_EXPR;
+                    }
+                }
                 // } elseif (!$tokenType) { // en son
                 //     if ($nextType === T_ASSIGN) {
                 //         $tokenType = T_VAR_ID;
@@ -210,7 +224,9 @@ class Lexer extends LexerBase
                 //     } elseif ($prevType === T_ASSIGN) {
                 //         $tokenType = T_EXPR;
                 //     }
-                }
+                // }
+
+                // if no type error?
             }
         }
         return $tokens;
