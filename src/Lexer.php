@@ -205,13 +205,13 @@ class Lexer extends LexerBase
                 return T_FUNCTION_ID;
             default:
                 $fChar = $value[0]; $lChar = substr($value, -1);
-                if ($fChar == '(' && $lChar == ')') {
+                if ($fChar === '(' && $lChar === ')') {
                     // return T_EXPR; ?? // yukarda isValidExpression sorgusunu engelliyor
                 }
-                if ($fChar == "'" && $lChar == "'") {
+                if ($fChar === "'" && $lChar === "'") {
                     return T_STRING;
                 }
-                if ($fChar == '"' && $lChar == '"') {
+                if ($fChar === '"' && $lChar === '"') {
                     return T_STRING;
                 }
                 if (is_numeric($value)) {
