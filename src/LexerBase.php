@@ -8,9 +8,9 @@ const T_SPACE = 'T_SPACE'; // -3;
 const T_PHP_TAG_OPEN = 'T_PHP_TAG_OPEN', T_PHP_TAG_CLOSE = 'T_PHP_TAG_CLOSE';
 
 const T_DECLARE = 'T_DECLARE', T_DECLARE_EXPR = 'T_DECLARE_EXPR';
-const T_MODULE = 'T_MODULE', T_MODULE_EXPR = 'T_MODULE_EXPR';
 const T_USE = 'T_USE', T_USE_EXPR = 'T_USE_EXPR';
 const T_CLASS = 'T_CLASS';
+const T_MODULE = 'T_MODULE';
 
 const T_OPR = 'T_OPR';
 const T_ASSIGN_OPR = 'T_ASSIGN_OPR';
@@ -60,6 +60,7 @@ const T_CONST_ID = 'T_CONST_ID';
 const T_OBJECT_ID = 'T_OBJECT_ID';
 // const T_PROPERTY_ID = 'T_PROPERTY_ID';
 const T_METHOD_ID = 'T_METHOD_ID';
+const T_MODULE_ID = 'T_MODULE_ID';
 
 const T_EXPR = 'T_EXPR';
 const T_NOT_EXPR = 'T_NOT_EXPR';
@@ -81,14 +82,15 @@ const T_THIS = 'T_THIS';
 // const T_FUN_CALL = 'T_FUN_CALL';
 const T_FUN_RET_TYPE = 'T_FUN_RET_TYPE';
 
+const C_ASSIGN = '=';
 const C_COLON = ':';
 const C_EXTENDS = '>';
 const C_IMPLEMENTS = '>>';
-// const C_PUBLIC = '';
+const C_STATIC = 's';
 const C_PRIVATE = '@';
 const C_PROTECTED = '@@';
-const C_STATIC = 's';
-const C_PHP_TAG_OPEN = '<?php', C_PHP_TAG_CLOSE = '?>';
+const C_PHP_OPEN = '<?php';
+const C_PHP_CLOSE = '?>';
 
 abstract class LexerBase
 {}

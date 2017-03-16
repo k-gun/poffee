@@ -1,4 +1,4 @@
-object Book:
-    // var s s = 1
-    fun id():
-        //
+module Book:
+    object Book > BookBase >> BookInterface, BookInterfaceOther:
+        var id
+
