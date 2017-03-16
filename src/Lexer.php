@@ -59,6 +59,8 @@ class Lexer extends LexerBase
               (?:(^\s+)?(//)\s*(.+))                    # comment
             | (?:(declare)\s+[\'"](.+)[\'"])          # declare
             | (?:(namespace)\s+(.+))          # namespace
+            | (?:(use)\s+(.+))          # use
+            | (?:(class|interface|trait)\s+([a-z_]\w*)(:))          # object
             | (?:(^\s+)?([a-z_]\w*)\s*(=)\s*(.+))   # assign
         ~ix';
         $matches = $lexer->getMatches($pattern, $input);
@@ -114,11 +116,13 @@ class Lexer extends LexerBase
                 $next = $token->next(); $nextType = $next ? $next->type : null;
                 if ($token->type == T_NONE) {
                     if ($prevType == T_COMMENT_OPERATOR) {
-                        $token->type = T_COMMENT;
+                        $token->type = T_COMMENT_CONTENT;
                     } elseif ($prevType == T_DECLARE) {
                         $token->type = T_DECLARE_EXPRESSION;
                     } elseif ($prevType == T_NAMESPACE) {
                         $token->type = T_NAMESPACE_EXPRESSION;
+                    } elseif ($prevType == T_USE) {
+                        $token->type = T_USE_EXPRESSION;
                     } elseif ($nextType == T_ASSIGN_OPERATOR) {
                         $token->type = T_VAR_IDENTIFIER;
                     } elseif ($expression = isValidExpression($token->value)) {
@@ -144,10 +148,10 @@ class Lexer extends LexerBase
             case self::$indent: return T_INDENT;
             case 'declare': return T_DECLARE;
             case '=':           return T_ASSIGN_OPERATOR;
-            case '.':           return T_DOT_OPERATOR;
-            case ':':           return T_COLON_OPERATOR;
-            case ',':           return T_COMMA_OPERATOR;
-            case '?':           return T_QUESTION_OPERATOR;
+            case '.':           return T_DOT;
+            case ':':           return T_COLON;
+            case ',':           return T_COMMA;
+            case '?':           return T_QUESTION;
             case '//':          return T_COMMENT_OPERATOR;
             case '(':           return T_OPEN_PARENTHESES;
             case ')':           return T_CLOSE_PARENTHESES;

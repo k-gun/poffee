@@ -1,13 +1,13 @@
 [
     {
-        "value": "declare",
-        "type": "T_DECLARE",
+        "value": "\/\/",
+        "type": "T_COMMENT_OPERATOR",
         "line": 1,
         "index": 0
     },
     {
-        "value": "strict_types=1",
-        "type": "T_DECLARE_EXPRESSION",
+        "value": "class Book:",
+        "type": "T_COMMENT_CONTENT",
         "line": 1,
         "index": 1
     },
@@ -15,30 +15,6 @@
         "value": "\n",
         "type": "T_EOL",
         "line": 1,
-        "index": 2
-    },
-    {
-        "value": "\n",
-        "type": "T_EOL",
-        "line": 2,
-        "index": 0
-    },
-    {
-        "value": "namespace",
-        "type": "T_NAMESPACE",
-        "line": 3,
-        "index": 0
-    },
-    {
-        "value": "Book",
-        "type": "T_NAMESPACE_EXPRESSION",
-        "line": 3,
-        "index": 1
-    },
-    {
-        "value": "\n",
-        "type": "T_EOL",
-        "line": 3,
         "index": 2
     }
 ]
