@@ -1,4 +1,3 @@
 object Book:
-    var id
+    var s@@ id = 1
 
-    method setId(int id):

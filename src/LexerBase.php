@@ -5,12 +5,12 @@ const T_NONE = 'T_NONE'; // 0;
 const T_EOL = 'T_EOL'; // -1;
 const T_INDENT = 'T_INDENT'; // -2;
 const T_SPACE = 'T_SPACE'; // -3;
+const T_PHP_TAG_OPEN = 'T_PHP_TAG_OPEN', T_PHP_TAG_CLOSE = 'T_PHP_TAG_CLOSE';
 
 const T_DECLARE = 'T_DECLARE', T_DECLARE_EXPR = 'T_DECLARE_EXPR';
 const T_MODULE = 'T_MODULE', T_MODULE_EXPR = 'T_MODULE_EXPR';
 const T_USE = 'T_USE', T_USE_EXPR = 'T_USE_EXPR';
 const T_CLASS = 'T_CLASS';
-const T_PASS = 'T_PASS';
 
 const T_OPR = 'T_OPR';
 const T_ASSIGN_OPR = 'T_ASSIGN_OPR';
@@ -23,22 +23,29 @@ const T_QUESTION = 'T_QUESTION';
 
 const T_OBJECT = 'T_OBJECT';
 const T_METHOD = 'T_METHOD';
-const T_VAR = 'T_VAR', T_VAR_PUBLIC = 'T_VAR_PUBLIC', T_VAR_PRIVATE = 'T_VAR_PRIVATE', T_VAR_PROTECTED = 'T_VAR_PROTECTED';
+const T_VAR_PUBLIC = 'T_VAR_PUBLIC', T_VAR_PRIVATE = 'T_VAR_PRIVATE', T_VAR_PROTECTED = 'T_VAR_PROTECTED';
+const T_FUN = 'T_FUN', T_FUN_PUBLIC = 'T_FUN_PUBLIC', T_FUN_PRIVATE = 'T_FUN_PRIVATE', T_FUN_PROTECTED = 'T_FUN_PROTECTED';
 const T_CONST = 'T_CONST', T_CONST_PUBLIC = 'T_CONST_PUBLIC', T_CONST_PRIVATE = 'T_CONST_PRIVATE', T_CONST_PROTECTED = 'T_CONST_PROTECTED';;
 
 const T_MODF = 'T_MODF';
 const T_EXTENDS_MODF = 'T_EXTENDS_MODF';
 const T_IMPLEMENTS_MODF = 'T_IMPLEMENTS_MODF';
 const T_ABSTRACT_MODF = 'T_ABSTRACT_MODF';
-const T_FINAL_MODF = 'T_FINAL_MODF';
-const T_VAR_PUBLIC_MODF = 'T_VAR_PUBLIC_MODF', T_VAR_PRIVATE_MODF = 'T_VAR_PRIVATE_MODF', T_VAR_PROTECTED_MODF = 'T_VAR_PROTECTED_MODF';
-const T_CONST_PUBLIC_MODF = 'T_CONST_PUBLIC_MODF', T_CONST_PRIVATE_MODF = 'T_CONST_PRIVATE_MODF', T_CONST_PROTECTED_MODF = 'T_CONST_PROTECTED_MODF';
+const T_FINAL_MODF = 'T_FINAL_MODF', T_STATIC_MODF = 'T_STATIC_MODF';
+const T_PUBLIC_MODF = 'T_PUBLIC_MODF', T_PRIVATE_MODF = 'T_PRIVATE_MODF', T_PROTECTED_MODF = 'T_PROTECTED_MODF';
 
+const T_FINAL = 'T_FINAL';
+const T_STATIC = 'T_STATIC';
+const T_PUBLIC = 'T_PUBLIC';
+const T_PRIVATE = 'T_PRIVATE';
+const T_PROTECTED = 'T_PROTECTED';
+const T_VAR = 'T_VAR';
 const T_RETURN = 'T_RETURN';
 const T_IF = 'T_IF';
 const T_ELSE = 'T_ELSE';
 const T_ELSE_IF = 'T_ELSE_IF';
-const T_LOOP = 'T_LOOP';
+const T_FOR = 'T_FOR';
+
 const T_PRNT_BLOCK = 'T_PRNT_BLOCK';
 const T_OPEN_PRNT = 'T_OPEN_PRNT';
 const T_CLOSE_PRNT = 'T_CLOSE_PRNT';
@@ -48,8 +55,8 @@ const T_CLOSE_BRKT = 'T_CLOSE_BRKT';
 
 const T_ID = 'T_ID';
 const T_VAR_ID = 'T_VAR_ID';
+const T_FUN_ID = 'T_FUN_ID';
 const T_CONST_ID = 'T_CONST_ID';
-const T_FUNCTION_ID = 'T_FUNCTION_ID';
 const T_OBJECT_ID = 'T_OBJECT_ID';
 // const T_PROPERTY_ID = 'T_PROPERTY_ID';
 const T_METHOD_ID = 'T_METHOD_ID';
@@ -61,24 +68,27 @@ const T_CALLABLE_CALL_EXPR = 'T_CALLABLE_CALL_EXPR';
 const T_METHOD_CALL_EXPR = 'T_METHOD_CALL_EXPR';
 const T_PROPERTY_EXPR = 'T_PROPERTY_EXPR';
 const T_ARRAY_EXPR = 'T_ARRAY_EXPR';
-// const T_VAR_EXPR = 'T_VAR_EXPR'
+// const T_VAR_EXPR = 'T_VAR_EXPR';
 // const T_CONST_EXPR = 'T_CONST_EXPR';
+const T_FUN_ARG_EXPR = 'T_FUN_ARG_EXPR';
 
 const T_NULL = 'T_NULL';
 const T_STRING = 'T_STRING';
 const T_NUMBER = 'T_NUMBER';
-const T_BOOLEAN = 'T_BOOLEAN';
+const T_BOOL = 'T_BOOL';
+const T_THIS = 'T_THIS';
 
-const T_FUNCTION = 'T_FUNCTION';
-const T_FUNCTION_CALL = 'T_FUNCTION_CALL';
+// const T_FUN_CALL = 'T_FUN_CALL';
+const T_FUN_RET_TYPE = 'T_FUN_RET_TYPE';
 
 const C_COLON = ':';
 const C_EXTENDS = '>';
 const C_IMPLEMENTS = '>>';
-// const C_VAR_PUBLIC = '';
-const C_VAR_PRIVATE = '@';
-const C_VAR_PROTECTED = '@@';
-const C_PASS = 'pass';
+// const C_PUBLIC = '';
+const C_PRIVATE = '@';
+const C_PROTECTED = '@@';
+const C_STATIC = 's';
+const C_PHP_TAG_OPEN = '<?php', C_PHP_TAG_CLOSE = '?>';
 
 abstract class LexerBase
 {}
@@ -226,12 +236,12 @@ function isValidColon($input) {
             ? (C_COLON === substr(chop($input), -1)) : true;
 }
 function isValidColonBody($input, array $inputArray, int $line) {
-    pre($input, $inputArray);
     if (!isset($inputArray[$line - 1])) {
         return true;
     }
     if (C_COLON === substr(chop($input), -1)) {
-        return isset($inputArray[$line]) && ('' !== trim($inputArray[$line]));
+        return isset($inputArray[$line]) && ('' !== trim($inputArray[$line]))
+            && '    ' === substr($inputArray[$line], 0, 4); // bunu degistir sonra clas icine alinca fn'i
     }
     return true;
 }
