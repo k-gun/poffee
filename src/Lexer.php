@@ -1,64 +1,6 @@
 <?php
 declare(strict_types=1); namespace Poffee;
 
-const T_NONE = 'T_NONE'; // 0;
-const T_EOL = 'T_EOL'; // -1;
-const T_INDENT = 'T_INDENT'; // -2;
-const T_SPACE = 'T_SPACE'; // -3;
-const T_COMMENT = 'T_COMMENT';
-
-const T_OPERATOR = 'T_OPERATOR';
-const T_ASSIGN_OPERATOR = 'T_ASSIGN_OPERATOR';
-const T_DOT_OPERATOR = 'T_DOT_OPERATOR';
-const T_COMMA_OPERATOR = 'T_COMMA_OPERATOR';
-const T_COLON_OPERATOR = 'T_COLON_OPERATOR';
-const T_QUESTION_OPERATOR = 'T_QUESTION_OPERATOR';
-const T_COMMENT_OPERATOR = 'T_COMMENT_OPERATOR';
-
-const T_VAR = 'T_VAR';
-const T_OBJECT = 'T_OBJECT';
-const T_MODIFIER = 'T_MODIFIER';
-const T_USE = 'T_USE';
-const T_CONST = 'T_CONST';
-const T_CLASS = 'T_CLASS';
-const T_RETURN = 'T_RETURN';
-const T_IF = 'T_IF';
-const T_ELSE = 'T_ELSE';
-const T_ELSE_IF = 'T_ELSE_IF';
-const T_LOOP = 'T_LOOP';
-const T_PARENTHESES_BLOCK = 'T_PARENTHESES_BLOCK';
-const T_OPEN_PARENTHESES = 'T_OPEN_PARENTHESES';
-const T_CLOSE_PARENTHESES = 'T_CLOSE_PARENTHESES';
-const T_BRACKET_BLOCK = 'T_BRACKET_BLOCK';
-const T_OPEN_BRACKET = 'T_OPEN_BRACKET';
-const T_CLOSE_BRACKET = 'T_CLOSE_BRACKET';
-
-const T_IDENTIFIER = 'T_IDENTIFIER';
-const T_VAR_IDENTIFIER = 'T_VAR_IDENTIFIER';
-const T_FUNCTION_IDENTIFIER = 'T_FUNCTION_IDENTIFIER';
-const T_OBJECT_IDENTIFIER = 'T_OBJECT_IDENTIFIER';
-const T_PROPERTY_IDENTIFIER = 'T_PROPERTY_IDENTIFIER';
-const T_METHOD_IDENTIFIER = 'T_METHOD_IDENTIFIER';
-
-const T_EXPRESSION = 'T_EXPRESSION';
-const T_NOT_EXPRESSION = 'T_NOT_EXPRESSION';
-const T_OPERATOR_EXPRESSION = 'T_OPERATOR_EXPRESSION';
-const T_TERNARY_1_EXPRESSION = 'T_TERNARY_1_EXPRESSION';
-const T_TERNARY_2_EXPRESSION = 'T_TERNARY_2_EXPRESSION';
-const T_TERNARY_3_EXPRESSION = 'T_TERNARY_3_EXPRESSION';
-const T_CALLABLE_CALL_EXPRESSION = 'T_CALLABLE_CALL_EXPRESSION';
-const T_METHOD_CALL_EXPRESSION = 'T_METHOD_CALL_EXPRESSION';
-const T_PROPERTY_EXPRESSION = 'T_PROPERTY_EXPRESSION';
-const T_ARRAY_EXPRESSION = 'T_ARRAY_EXPRESSION';
-
-const T_NULL = 'T_NULL';
-const T_STRING = 'T_STRING';
-const T_NUMBER = 'T_NUMBER';
-const T_BOOLEAN = 'T_BOOLEAN';
-
-const T_FUNCTION = 'T_FUNCTION';
-const T_FUNCTION_CALL = 'T_FUNCTION_CALL';
-
 // cache these?
 function isValidIdentifier($input) {
     return !!preg_match('~^(?:[a-z_]\w*)$~i', $input);
@@ -71,13 +13,13 @@ const RE_FUNCTION_ARGS = ' ,\w\.\=\(\)\[\]\'\"';
 
 function isValidExpression($input) {
     pre($input);
-    $pattern[] = sprintf('(?<NOT_EXPRESSION>(\!)(\w+)|(not)\s+(\w+))');
-    $pattern[] = sprintf('(?<OPERATOR_EXPRESSION>(\w+)\s*(%s+)\s*(\w+)?)', RE_OPERATOR);
-    $pattern[] = sprintf('(?<CALLABLE_CALL_EXPRESSION>(?:(new)\s+)?([a-z_]\w*)\s*(\()(.*)(\)))');
-    $pattern[] = sprintf('(?<METHOD_CALL_EXPRESSION>(?:(new)\s+)?([a-z_][%s]*)\s*(\.)([a-z_]\w*)\s*(\()(.*)(\)))', RE_FUNCTION_ARGS);
-    $pattern[] = sprintf('(?<PROPERTY_EXPRESSION>(?:[a-z_]\w*)\.(?:[a-z_]\w*)(?:\..+)?)');
-    $pattern[] = sprintf('(?<ARRAY_EXPRESSION>(\[)(.*)(\]))');
-    $pattern[] = sprintf('(?<SCOPE_EXPRESSION>(\()(.*)(\)))');
+    $pattern[] = sprintf('(?<NOT>(\!)(\w+)|(not)\s+(\w+))');
+    $pattern[] = sprintf('(?<OPERATOR>(\w+)\s*(%s+)\s*(\w+)?)', RE_OPERATOR);
+    $pattern[] = sprintf('(?<CALLABLE_CALL>(?:(new)\s+)?([a-z_]\w*)\s*(\()(.*)(\)))');
+    $pattern[] = sprintf('(?<METHOD_CALL>(?:(new)\s+)?([a-z_][%s]*)\s*(\.)([a-z_]\w*)\s*(\()(.*)(\)))', RE_FUNCTION_ARGS);
+    $pattern[] = sprintf('(?<PROPERTY>(?:[a-z_]\w*)\.(?:[a-z_]\w*)(?:\..+)?)');
+    $pattern[] = sprintf('(?<ARRAY>(?:(\[)(.*)(\])|([a-z_]\w*)(\[)(.+)(\])))');
+    $pattern[] = sprintf('(?<SCOPE>(\()(.*)(\)))');
     $pattern = '~^(?:'. join('|', $pattern) .')$~ix';
     preg_match($pattern, $input, $matches);
     pre($matches);
@@ -91,7 +33,7 @@ function isValidExpression($input) {
     return !empty($return) ? $return : null;
 }
 
-class Lexer
+class Lexer extends LexerBase
 {
     private static $eol = PHP_EOL,
         $space = ' ',
@@ -115,6 +57,8 @@ class Lexer
         $lexer->line = $line;
         $pattern = '~
               (?:(^\s+)?(//)\s*(.+))                    # comment
+            | (?:(declare)\s+[\'"](.+)[\'"])          # declare
+            | (?:(namespace)\s+(.+))          # namespace
             | (?:(^\s+)?([a-z_]\w*)\s*(=)\s*(.+))   # assign
         ~ix';
         $matches = $lexer->getMatches($pattern, $input);
@@ -171,15 +115,16 @@ class Lexer
                 if ($token->type == T_NONE) {
                     if ($prevType == T_COMMENT_OPERATOR) {
                         $token->type = T_COMMENT;
+                    } elseif ($prevType == T_DECLARE) {
+                        $token->type = T_DECLARE_EXPRESSION;
+                    } elseif ($prevType == T_NAMESPACE) {
+                        $token->type = T_NAMESPACE_EXPRESSION;
                     } elseif ($nextType == T_ASSIGN_OPERATOR) {
                         $token->type = T_VAR_IDENTIFIER;
                     } elseif ($expression = isValidExpression($token->value)) {
-                        $token->type = getTokenTypeFromConst($expression['type']);
+                        $token->type = getTokenTypeFromConst($expression['type'].'_expression');
                         if ($token->type) {
-                            pre($token->type);
-                            // $children = $this->generateTokens(array_slice($expression, 2), 1);
-                            // $children = array_slice($expression, 2);
-                            // pre($children);
+                            // $token->children = $this->generateTokens(array_slice($expression, 2), 1);
                         }
                     } elseif ($prevType == T_ASSIGN_OPERATOR) {
                         $token->type = T_EXPRESSION;
@@ -197,6 +142,7 @@ class Lexer
             case self::$eol:    return T_EOL;
             case self::$space:  return T_SPACE;
             case self::$indent: return T_INDENT;
+            case 'declare': return T_DECLARE;
             case '=':           return T_ASSIGN_OPERATOR;
             case '.':           return T_DOT_OPERATOR;
             case ':':           return T_COLON_OPERATOR;

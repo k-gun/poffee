@@ -67,7 +67,7 @@ function pre(...$args) {
 function prd($arg) {
     print _p($arg); die;
 }
-function prf($arg, $f = 'ta') {
+function prf($arg, $f = 'ast.json') {
     // file_put_contents($f, _p($arg));
     file_put_contents($f, json_encode($arg, JSON_PRETTY_PRINT));
 }
