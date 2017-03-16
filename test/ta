@@ -1,26 +1,39 @@
 [
     {
-        "value": "a",
-        "type": "T_VAR_IDENTIFIER",
+        "value": "if !a:\n",
+        "type": "T_NONE",
         "line": 1,
         "index": 0
     },
     {
+        "size": 4,
+        "value": "    ",
+        "type": "T_INDENT",
+        "line": 2,
+        "index": 0
+    },
+    {
+        "value": "a",
+        "type": "T_VAR_IDENTIFIER",
+        "line": 2,
+        "index": 1
+    },
+    {
         "value": "=",
         "type": "T_ASSIGN_OPERATOR",
-        "line": 1,
-        "index": 1
+        "line": 2,
+        "index": 2
     },
     {
         "value": "a ? a : [1, 2]",
         "type": "T_NONE",
-        "line": 1,
-        "index": 2
+        "line": 2,
+        "index": 3
     },
     {
         "value": "\n",
         "type": "T_EOL",
-        "line": 1,
-        "index": 3
+        "line": 2,
+        "index": 4
     }
 ]

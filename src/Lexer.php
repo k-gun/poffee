@@ -149,22 +149,20 @@ class Lexer
             if ($value == self::$space) continue; // ?
             $indent = null;
             $length = strlen($value);
-            if (ctype_space($value)) {
-                if ($length >= self::$indentLength && $length % self::$indentLength == 0) {
-                    $type = T_INDENT;
-                    $indent = $length / self::$indentLength;
-                } else throw new \Exception(sprintf('Indent error in %s line %s!', $this->file, $this->line));
+            $token  = [];
+            if ($value != self::$eol && ctype_space($value)) {
+                if ($length < self::$indentLength || $length % self::$indentLength != 0) {
+                    throw new \Exception(sprintf('Indent error in %s line %s!', $this->file, $this->line));
+                }
+                $type = T_INDENT;
+                $token['size'] = $length; // / self::$indentLength;
             } else {
                 $type = $this->getType($value);
             }
-            // if ($type != T_INDENT) {
-            //     while ($indent < $length && $value[++$indent] == ' ') {}
-            // }
             // $start = $match[1]; $end = $start + $length;
-            $token = ['value' => $value, 'type' => $type, 'line' => $this->line, // 'indent' => $indent,
+            $token += ['value' => $value, 'type' => $type, 'line' => $this->line,
                 // 'length' => $length, 'start' => $start, 'end' => $end, 'children' => null
             ];
-            // if ($indent) $token['size'] = $indent;
             $tokens[] = $token;
         }
 
