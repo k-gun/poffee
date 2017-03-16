@@ -71,16 +71,13 @@ const RE_FUNCTION_ARGS = ' ,\w\.\=\(\)\[\]\'\"';
 
 function isValidExpression($input) {
     pre($input);
-    $pattern[] = sprintf('(?<NOT>(\!)(\w+)|(not)\s+(\w+))');
-    $pattern[] = sprintf('(?<OPERATOR>(\w+)\s*(%s+)\s*(\w+)?)', RE_OPERATOR);
-    // $pattern[] = sprintf('(?<TERNARY_3>(?:\s*(\(.+\))\s*(\?)\s*(\(.+\))\s*(:)\s*(.+?)))');
-    // $pattern[] = sprintf('(?<TERNARY_2>(?:\s*(.+?)\s*(\?)\s*(\(.+\))\s*(:)\s*(.+?)))');
-    // $pattern[] = sprintf('(?<TERNARY_1>(?:\s*(.+?)\s*(\?)\s*(.+?)\s*(:)\s*(.+?)))');
-    $pattern[] = sprintf('(?<CALLABLE_CALL>(?:(new)\s+)?([a-z_]\w*)\s*(\()(.*)(\)))');
-    $pattern[] = sprintf('(?<METHOD_CALL>(?:(new)\s+)?([a-z_][%s]*)\s*(\.)([a-z_]\w*)\s*(\()(.*)(\)))', RE_FUNCTION_ARGS);
-    $pattern[] = sprintf('(?<PROPERTY>(?:[a-z_]\w*)\.(?:[a-z_]\w*)(?:\..+)?)');
-    $pattern[] = sprintf('(?<ARRAY>(\[)(.*)(\]))');
-    $pattern[] = sprintf('(?<SCOPE>(\()(.*)(\)))');
+    $pattern[] = sprintf('(?<NOT_EXPRESSION>(\!)(\w+)|(not)\s+(\w+))');
+    $pattern[] = sprintf('(?<OPERATOR_EXPRESSION>(\w+)\s*(%s+)\s*(\w+)?)', RE_OPERATOR);
+    $pattern[] = sprintf('(?<CALLABLE_CALL_EXPRESSION>(?:(new)\s+)?([a-z_]\w*)\s*(\()(.*)(\)))');
+    $pattern[] = sprintf('(?<METHOD_CALL_EXPRESSION>(?:(new)\s+)?([a-z_][%s]*)\s*(\.)([a-z_]\w*)\s*(\()(.*)(\)))', RE_FUNCTION_ARGS);
+    $pattern[] = sprintf('(?<PROPERTY_EXPRESSION>(?:[a-z_]\w*)\.(?:[a-z_]\w*)(?:\..+)?)');
+    $pattern[] = sprintf('(?<ARRAY_EXPRESSION>(\[)(.*)(\]))');
+    $pattern[] = sprintf('(?<SCOPE_EXPRESSION>(\()(.*)(\)))');
     $pattern = '~^(?:'. join('|', $pattern) .')$~ix';
     preg_match($pattern, $input, $matches);
     pre($matches);
@@ -177,23 +174,15 @@ class Lexer
                     } elseif ($nextType == T_ASSIGN_OPERATOR) {
                         $token->type = T_VAR_IDENTIFIER;
                     } elseif ($expression = isValidExpression($token->value)) {
-                        switch ($expression['type']) {
-                            case 'NOT': $token->type = T_NOT_EXPRESSION; break;
-                            case 'OPERATOR': $token->type = T_OPERATOR_EXPRESSION; break;
-                            case 'TERNARY_1': $token->type = T_TERNARY_1_EXPRESSION; break;
-                            case 'TERNARY_2': $token->type = T_TERNARY_2_EXPRESSION; break;
-                            case 'TERNARY_3': $token->type = T_TERNARY_3_EXPRESSION; break;
-                            case 'CALLABLE_CALL': $token->type = T_CALLABLE_CALL_EXPRESSION; break;
-                            case 'METHOD_CALL': $token->type = T_METHOD_CALL_EXPRESSION; break;
-                            case 'PROPERTY': $token->type = T_PROPERTY_EXPRESSION; break;
-                            case 'ARRAY': $token->type = T_ARRAY_EXPRESSION; break;
-                            default: $token->type = T_EXPRESSION;
-                        }
-                        if ($token->type != T_EXPRESSION) {
+                        $token->type = getTokenTypeFromConst($expression['type']);
+                        if ($token->type) {
+                            pre($token->type);
                             // $children = $this->generateTokens(array_slice($expression, 2), 1);
                             // $children = array_slice($expression, 2);
                             // pre($children);
                         }
+                    } elseif ($prevType == T_ASSIGN_OPERATOR) {
+                        $token->type = T_EXPRESSION;
                     }
                 }
             }
@@ -393,5 +382,17 @@ class Tokens
     public function toArray()
     {
         return array_filter($this->tokens); // array_filter?
+    }
+}
+
+function getTokenTypeFromConst($name) {
+    // $name = sprintf('%s\\T_%s', __namespace__, strtoupper($name));
+    // if (defined($name)) {
+    //     return $name; // @tmp // constant($name);
+    // }
+    // @tmp
+    $name = strtoupper("t_{$name}");
+    if (defined(__namespace__ .'\\'. $name)) {
+        return $name; // @tmp // constant($name);
     }
 }
