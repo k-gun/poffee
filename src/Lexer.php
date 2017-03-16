@@ -7,7 +7,7 @@ const RE_OPR = '[\<\>\!\=\*/\+\-%\|\^\~]';
 const RE_FUNCTION_ARGS = ' ,\w\.\=\(\)\[\]\'\"';
 
 function isValidExpression($input) {
-    pre($input);
+    // pre($input);
     $pattern[] = sprintf('(?<NOT>(\!)(\w+)|(not)\s+(\w+))');
     $pattern[] = sprintf('(?<OPR>(\w+)\s*(%s+)\s*(\w+)?)', RE_OPR);
     $pattern[] = sprintf('(?<CALLABLE_CALL>(?:(new)\s+)?([a-z_]\w*)\s*(\()(.*)(\)))');
@@ -53,20 +53,20 @@ class Lexer extends LexerBase
         $lexer->line = $line;
         $pattern = '~
               (?:(//)\s*(.+))                           # comment
-            | (?:(declare)\s+[\'"](.+)[\'"])            # declare
+            | (?:(declare)\s+([\'"].+[\'"]))            # declare
             | (?:(module)\s+([a-z_]\w*)\s*(:))          # module (namespace)
-            | (?:(use|const)\s+(.+))                    # use, const
+            | (?:(use)\s+(.+))                          # use
+            | (?:(const)\s+([a-z_]\w*)\s*(=)\s*(\w+|[\'"].*[\'"]|\[.*\])) # const
             | (?:                                       # objects
                 (?:(abstract|final)\s*)?                # descriptor
                 (object|interface|trait)\s+([a-z_]\w*)  # class, interface, trait
                 (?:\s*(>)\s+([a-z_]\w*))?               # extends
                 (?:\s*(>>)\s+([a-z_](?:[\w,\s]*)))?     # implements
               (:))
-            #| (?:(^\s+)                                # property
-            #    (public|private|protected)\s+ beklesin
-            #    (?:(static))
-            #  )
-            | (?:(^\s+)?([a-z_]\w*)\s*(=)\s*(.+))       # assign
+            | (?:(^\s+)                                 # var (static?)
+                (?:(var)\s+([a-z_]\w*)(?:\s*(=)\s*(.+))?)
+             )
+            #| (?:(^\s+)?([a-z_]\w*)\s*(=)\s*(.+))       # assign
         ~ix';
         $matches = $lexer->getMatches($pattern, $input);
         pre($matches);
@@ -85,7 +85,7 @@ class Lexer extends LexerBase
             (\))? # close parentheses
         )~ix';
         $matches = $lexer->getMatches($pattern, $input);
-        pre($matches);
+        // pre($matches);
         return $lexer->generateTokens($matches);
     }
 
@@ -103,7 +103,7 @@ class Lexer extends LexerBase
                     throw new \Exception(sprintf('Indent error in %s line %s!', $this->file, $this->line));
                 }
                 $type = T_INDENT;
-                $token['size'] = $length; // / self::$indentLength;
+                // $token['size'] = $length; // / self::$indentLength;
             } else {
                 $type = $this->getType($value);
             }
@@ -116,43 +116,50 @@ class Lexer extends LexerBase
         $tokens = new Tokens($tokens);
         if (!$tokens->isEmpty()) {
             while ($token = $tokens->next()) {
+                $type = $token->type;
                 $prev = $token->prev(); $prevType = $prev ? $prev->type : null;
                 $next = $token->next(); $nextType = $next ? $next->type : null;
-                if ($token->type === T_NONE) {
-                    $type = null;
+                if (!$type) {
+                    pre($prevType);
                     switch ($prevType) {
                         case T_COMMENT_OPR:     $type = T_COMMENT_CONTENT; break;
                         case T_DECLARE:         $type = T_DECLARE_EXPR;    break;
                         case T_MODULE:          $type = T_MODULE_EXPR;  break;
                         case T_USE:             $type = T_USE_EXPR;        break;
-                        case T_CONST:           $type = T_CONST_EXPR;      break;
+                        case T_CONST:           $type = T_CONST_ID;      break;
                         case T_OBJECT:          $type = T_OBJECT_ID; break;
                         case T_OBJECT_ID:
                             if ($token->value === C_EXTENDS) {
                                 $type = T_EXTENDS_MODF;
                                 $nextType = T_OBJECT_ID;
-                            }
-                            elseif ($token->value === C_IMPLEMENTS) {
+                            } elseif ($token->value === C_IMPLEMENTS) {
                                 $type = T_IMPLEMENTS_MODF;
                                 $nextType = T_OBJECT_ID;
-                                // prd($token);
+                            // } else {
+                                // throw new \Exception("..");
                             }
-                            // else {
-                            //     // throw new \Exception("..");
-                            // }
+                            break;
+                        case T_VAR:
+                            if ($token->value === C_VAR_PRIVATE) {
+                                $type = T_VAR_PRIVATE;
+                            } elseif ($token->value === C_VAR_PROTECTED) {
+                                $type = T_VAR_PROTECTED;
+                            } else {
+                                $type = T_VAR_PUBLIC;
+                            }
                             break;
                     }
                     if (!$type) {
-                        pre($token->value, $prevType, $nextType);
+                        // pre($token->value, $prevType, $nextType);
                     }
                     if (!$type) {
                         if ($nextType === T_ASSIGN_OPR) {
                             $type = T_VAR_ID;
-                        } elseif ($expression = isValidExpression($token->value)) {
-                            $type = getTokenTypeFromConst($expression['type'].'_expr');
-                            if ($type) {
-                                // $token->children = $this->generateTokens(array_slice($expression, 2));
-                            }
+                        // } elseif ($expression = isValidExpression($token->value)) {
+                        //     $type = getTokenTypeFromConst($expression['type'].'_expr');
+                        //     if ($type) {
+                        //         $token->children = $this->generateTokens(array_slice($expression, 2));
+                        //     }
                         } elseif ($prevType === T_ASSIGN_OPR) {
                             $type = T_EXPR;
                         }
@@ -188,13 +195,13 @@ class Lexer extends LexerBase
             // bunlar icin getTokenTypeFromConst() kullan sonra
             case 'declare': return T_DECLARE;
             case 'module': return T_MODULE;
-            // case 'object': case 'interface': case 'trait': return T_OBJECT;
-            // case 'extends': return T_EXTENDS_MODF;
-            // case 'implements': return T_IMPLEMENTS_MODF;
             case 'abstract': return T_ABSTRACT_MODF;
             case 'final': return T_FINAL_MODF;
+            case 'object': case 'interface': case 'trait': return T_OBJECT;
+            case 'var': return T_VAR;
+            case 'const': return T_CONST;
 
-            case 'static': case 'global': case 'public': case 'private': case 'protected': return T_MODF;
+            // case 'static': case 'global': case 'public': case 'private': case 'protected': return T_MODF;
             case 'func': return T_FUNCTION;
 
             case 'null': return T_NULL;
@@ -220,12 +227,8 @@ class Lexer extends LexerBase
                 if (preg_match(RE_OPR, $value)) {
                     return T_OPR;
                 }
-                $name = strtoupper("t_{$value}"); // !!
-                if (defined(__namespace__ .'\\'. $name)) {
-                    return $name; // @tmp // constant($name);
-                }
         }
-        return T_NONE;
+        return null;
     }
     public function getMatches($pattern, $input)
     {

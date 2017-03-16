@@ -9,7 +9,6 @@ const T_SPACE = 'T_SPACE'; // -3;
 const T_DECLARE = 'T_DECLARE', T_DECLARE_EXPR = 'T_DECLARE_EXPR';
 const T_MODULE = 'T_MODULE', T_MODULE_EXPR = 'T_MODULE_EXPR';
 const T_USE = 'T_USE', T_USE_EXPR = 'T_USE_EXPR';
-const T_CONST = 'T_CONST', T_CONST_EXPR = 'T_CONST_EXPR';
 const T_CLASS = 'T_CLASS';
 
 
@@ -22,8 +21,10 @@ const T_COMMA = 'T_COMMA';
 const T_COLON = 'T_COLON';
 const T_QUESTION = 'T_QUESTION';
 
-const T_VAR = 'T_VAR';
 const T_OBJECT = 'T_OBJECT';
+const T_METHOD = 'T_METHOD';
+const T_VAR = 'T_VAR', T_VAR_EXPR = 'T_VAR_EXPR', T_VAR_PUBLIC = 'T_VAR_PUBLIC', T_VAR_PRIVATE = 'T_VAR_PRIVATE', T_VAR_PROTECTED = 'T_VAR_PROTECTED';
+const T_CONST = 'T_CONST', T_CONST_EXPR = 'T_CONST_EXPR', T_CONST_PUBLIC = 'T_CONST_PUBLIC', T_CONST_PRIVATE = 'T_CONST_PRIVATE', T_CONST_PROTECTED = 'T_CONST_PROTECTED';;
 
 const T_MODF = 'T_MODF';
 const T_EXTENDS_MODF = 'T_EXTENDS_MODF';
@@ -45,9 +46,10 @@ const T_CLOSE_BRKT = 'T_CLOSE_BRKT';
 
 const T_ID = 'T_ID';
 const T_VAR_ID = 'T_VAR_ID';
+const T_CONST_ID = 'T_CONST_ID';
 const T_FUNCTION_ID = 'T_FUNCTION_ID';
 const T_OBJECT_ID = 'T_OBJECT_ID';
-const T_PROPERTY_ID = 'T_PROPERTY_ID';
+// const T_PROPERTY_ID = 'T_PROPERTY_ID';
 const T_METHOD_ID = 'T_METHOD_ID';
 
 const T_EXPR = 'T_EXPR';
@@ -69,6 +71,9 @@ const T_FUNCTION_CALL = 'T_FUNCTION_CALL';
 const C_COLON = ':';
 const C_EXTENDS = '>';
 const C_IMPLEMENTS = '>>';
+// const C_VAR_PUBLIC = '';
+const C_VAR_PRIVATE = '@';
+const C_VAR_PROTECTED = '@@';
 
 abstract class LexerBase
 {}
