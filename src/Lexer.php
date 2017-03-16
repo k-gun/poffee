@@ -53,7 +53,7 @@ class Lexer extends LexerBase
         $lexer = new self(self::$indent);
         $lexer->file = $file;
         $lexer->line = $line;
-        $pattern = '~
+        $pattern = '~(?:
               (?:(^\s+)?(?<![\'"])(//)\s*(.+))          # comment
             | (?:(declare)\s+([\'"].+[\'"]))            # declare
             | (?:(module)\s+([a-z_]\w*)\s*(:))          # module (namespace)
@@ -92,7 +92,7 @@ class Lexer extends LexerBase
                 (:)                                     # colon
                 (?:\s*([a-z_]\w*))?                     # return type
               )
-            | (?:(^\s+)?
+            | (?:(^\s+)?                                # function
                 (?:(fun)
                     (?:\s+([a-z_]\w*))
                     (?:\s*(\(.*\)))                     # arguments
@@ -100,9 +100,9 @@ class Lexer extends LexerBase
                     (?:\s*([a-z_]\w*))?                 # return type
                 )
               )
-            | (?:(^\s+)?(return)\s*(.+))                # return
+            | (?:(^\s+)?(return)\s*(.*))                 # return
             #| (?:(^\s+)?([a-z_]\w*)\s*(=)\s*(.+))       # assign
-        ~ix';
+        )~ix';
         $matches = $lexer->getMatches($pattern, $input);
         pre($matches);
         return $lexer->generateTokens($matches);

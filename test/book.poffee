@@ -1,2 +1,1 @@
-fun getBook(id):
-    return db.book.get(id)
+fun getBook(id): return 1 <<< sytax error!!

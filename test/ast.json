@@ -24,33 +24,15 @@
         "index": 3
     },
     {
-        "value": "\n",
-        "type": "T_EOL",
+        "value": "return",
+        "type": "T_RETURN",
         "line": 1,
         "index": 4
     },
     {
-        "value": "    ",
-        "type": "T_INDENT",
-        "line": 2,
-        "index": 0
-    },
-    {
-        "value": "return",
-        "type": "T_RETURN",
-        "line": 2,
-        "index": 1
-    },
-    {
-        "value": "db.book.get(id)",
+        "value": " 1\n",
         "type": "T_RETURN_EXPR",
-        "line": 2,
-        "index": 2
-    },
-    {
-        "value": "\n",
-        "type": "T_EOL",
-        "line": 2,
-        "index": 3
+        "line": 1,
+        "index": 5
     }
 ]
