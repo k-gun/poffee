@@ -74,15 +74,16 @@ class Lexer extends LexerBase
               )
             | (?:(^\s+)                                 # property (static?)
                 (?:(var)
-                    (?:\s+(s)?(@|@@))?                  # static, private, protected
+                    (?:\s+(s)?(@|@@)?)?                 # static, private, protected
                        \s+([a-z_]\w*)                   # name
                     (?:\s*(=)\s*(.+))?                  # value
                 )
               )
             | (?:(^\s+)                                 # method
                 (?:(fun)
-                    (?:\s+(@|@@))?                      # private, protected
-                       \s*([a-z_]\w*)                   # name
+                    (?:\s+(s)?(@|@@)?)?                 # private, protected
+                    (?:\s+(final))?                     # final descriptor
+                       \s+([a-z_]\w*)                   # name
                     (?:\s*(\(.*\)))                     # arguments
                 )
               (:)(?:\s*([a-z_]\w*))?)
@@ -170,28 +171,27 @@ class Lexer extends LexerBase
                                     case C_PROTECTED: $t->type = T_PROTECTED; $t->next->type = T_VAR_ID; break;
                                 }
                                 $nextType = $t->type;
-                                pre($nextType);
                             }
                             if ($nextType === T_PRIVATE || $nextType === T_PROTECTED) {
-                                $tokenType = T_STATIC_MODF;
+                                $tokenType = T_STATIC;
                             } elseif ($tokenValue === C_PRIVATE) {
                                 $tokenType = T_PRIVATE; $nextType = T_VAR_ID;
                             } elseif ($tokenValue === C_PROTECTED) {
                                 $tokenType = T_PROTECTED; $nextType = T_VAR_ID;
+                            } elseif ($next->next && $next->next->type === T_ASSIGN_OPR) {
+                                $tokenType = T_STATIC; $nextType = T_VAR_ID;
                             } else {
-                                $tokenType = T_PUBLIC;
+                                $tokenType = T_VAR_ID;
                             }
                             break;
                         case T_FUN:
-                            if ($tokenValue === C_PRIVATE) {
-                                $tokenType = T_PRIVATE; $nextType = T_FUN_PRIVATE;
-                            } elseif ($tokenValue === C_PROTECTED) {
-                                $tokenType = T_PROTECTED; $nextType = T_FUN_PROTECTED;
-                            } else {
-                                $tokenType = T_FUN_PUBLIC;
+                            pre($token->value);
+                            while (($t = $tokens->next()) && $t->value !== C_COLON) {
+                                if ($t->value[0] === '(') { $tokenType = T_FUN_ID; $t->type = T_FUN_ARG_EXPR;}
                             }
+                            pre("...");
                             break;
-                        case T_FUN_PUBLIC: case T_FUN_PRIVATE: case T_FUN_PROTECTED:
+                        case T_FUN_ID: case T_FUN_ID: case T_FUN_ID:
                             $tokenType = T_FUN_ARG_EXPR; break;
                         case T_COLON:
                             if ($prev->prev && $prev->prev->type === T_FUN_ARG_EXPR) {
@@ -199,18 +199,18 @@ class Lexer extends LexerBase
                             }
                             break;
                     }
-                    if (!$tokenType) {
-                        if ($nextType === T_ASSIGN_OPR) {
-                            $tokenType = T_VAR_ID;
-                        // } elseif ($expression = isValidExpression($tokenValue)) {
-                        //     $tokenType = getTokenTypeFromConst($expression['type'].'_expr');
-                        //     if ($tokenType) {
-                        //         $token->children = $this->generateTokens(array_slice($expression, 2));
-                        //     }
-                        } elseif ($prevType === T_ASSIGN_OPR) {
-                            $tokenType = T_EXPR;
-                        }
-                    }
+                    // if (!$tokenType) {
+                    //     if ($nextType === T_ASSIGN_OPR) {
+                    //         $tokenType = T_VAR_ID;
+                    //     // } elseif ($expression = isValidExpression($tokenValue)) {
+                    //     //     $tokenType = getTokenTypeFromConst($expression['type'].'_expr');
+                    //     //     if ($tokenType) {
+                    //     //         $token->children = $this->generateTokens(array_slice($expression, 2));
+                    //     //     }
+                    //     } elseif ($prevType === T_ASSIGN_OPR) {
+                    //         $tokenType = T_EXPR;
+                    //     }
+                    // }
 
                     $token->type = $tokenType;
                     if ($prev && $prevType) $prev->type = $prevType;

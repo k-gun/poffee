@@ -1,3 +1,4 @@
 object Book:
-    var s@@ id = 1
-
+    // var s s = 1
+    fun id():
+        //
