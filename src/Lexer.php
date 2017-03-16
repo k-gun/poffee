@@ -1,11 +1,6 @@
 <?php
 declare(strict_types=1); namespace Poffee;
 
-// cache these?
-function isValidID($input) {
-    return !!preg_match('~^(?:[a-z_]\w*)$~i', $input);
-}
-
 const RE_ID = '[a-z_]\w*';
 const RE_STRING = '[\'"].*[\'"]';
 const RE_OPR = '[\<\>\!\=\*/\+\-%\|\^\~]';
@@ -22,14 +17,14 @@ function isValidExpression($input) {
     $pattern[] = sprintf('(?<SCOPE>(\()(.*)(\)))');
     $pattern = '~^(?:'. join('|', $pattern) .')$~ix';
     preg_match($pattern, $input, $matches);
-    pre($matches);
+    // pre($matches);
     $return = [];
     foreach ($matches as $key => $value) {
         if ($key !== 0 && $value !== '') {
             is_string($key) ? $return['type'] = $key : $return[] = $value;
         }
     }
-    var_dump($return); // var_dump
+    // var_dump($return); // var_dump
     return !empty($return) ? $return : null;
 }
 
@@ -52,19 +47,26 @@ class Lexer extends LexerBase
 
     public function scan($file, $line, $input)
     {
+        if (!isValidColon($input)) {throw new \Exception(sprintf('Sytax error in %s line %s, expecting ":" for the end of line!', $file, $line));}
         $lexer = new self(self::$indent);
         $lexer->file = $file;
         $lexer->line = $line;
         $pattern = '~
-              (?:(^\s+)?(//)\s*(.+))                    # comment
-            | (?:(declare)\s+[\'"](.+)[\'"])          # declare
-            | (?:(namespace)\s+(.+))          # namespace
-            | (?:(use)\s+(.+))          # use
-            | (?:(class|interface|trait)\s+([a-z_]\w*)      # object
-                (?:\s*(extends)\s+([a-z_]\w*))?
-                (?:\s*(implements)\s+([a-z_]\w*))?
+              (?:(//)\s*(.+))                           # comment
+            | (?:(declare)\s+[\'"](.+)[\'"])            # declare
+            | (?:(module)\s+([a-z_]\w*)\s*(:))          # module (namespace)
+            | (?:(use|const)\s+(.+))                    # use, const
+            | (?:                                       # objects
+                (?:(abstract|final)\s*)?                # descriptor
+                (object|interface|trait)\s+([a-z_]\w*)  # class, interface, trait
+                (?:\s*(>)\s+([a-z_]\w*))?               # extends
+                (?:\s*(>>)\s+([a-z_](?:[\w,\s]*)))?     # implements
               (:))
-            | (?:(^\s+)?([a-z_]\w*)\s*(=)\s*(.+))   # assign
+            #| (?:(^\s+)                                # property
+            #    (public|private|protected)\s+ beklesin
+            #    (?:(static))
+            #  )
+            | (?:(^\s+)?([a-z_]\w*)\s*(=)\s*(.+))       # assign
         ~ix';
         $matches = $lexer->getMatches($pattern, $input);
         pre($matches);
@@ -87,17 +89,17 @@ class Lexer extends LexerBase
         return $lexer->generateTokens($matches);
     }
 
-    public function generateTokens(array $matches, $a=null)
+    public function generateTokens(array $matches)
     {
         $tokens = [];
         foreach ($matches as $match) {
             $value = is_array($match) ? $match[0] : $match;
-            if ($value == self::$space) continue; // ?
+            if ($value === self::$space) continue; // ?
+            $token  = [];
             $indent = null;
             $length = strlen($value);
-            $token  = [];
-            if ($value != self::$eol && ctype_space($value)) {
-                if ($length < self::$indentLength || $length % self::$indentLength != 0) {
+            if ($value !== self::$eol && ctype_space($value)) {
+                if ($length < self::$indentLength or $length % self::$indentLength !== 0) {
                     throw new \Exception(sprintf('Indent error in %s line %s!', $this->file, $this->line));
                 }
                 $type = T_INDENT;
@@ -116,27 +118,49 @@ class Lexer extends LexerBase
             while ($token = $tokens->next()) {
                 $prev = $token->prev(); $prevType = $prev ? $prev->type : null;
                 $next = $token->next(); $nextType = $next ? $next->type : null;
-                if ($token->type == T_NONE) {
-                    if ($prevType == T_COMMENT_OPR) {
-                        $token->type = T_COMMENT_CONTENT;
-                    } elseif ($prevType == T_DECLARE) {
-                        $token->type = T_DECLARE_EXPR;
-                    } elseif ($prevType == T_NAMESPACE) {
-                        $token->type = T_NAMESPACE_EXPR;
-                    } elseif ($prevType == T_USE) {
-                        $token->type = T_USE_EXPR;
-                    } elseif ($prevType == T_OBJECT || $prevType == T_EXTENDS_MDFR || $prevType == T_IMPLEMENTS_MDFR) {
-                        $token->type = T_OBJECT_ID;
-                    } elseif ($nextType == T_ASSIGN_OPR) {
-                        $token->type = T_VAR_ID;
-                    } elseif ($expression = isValidExpression($token->value)) {
-                        $token->type = getTokenTypeFromConst($expression['type'].'_expr');
-                        if ($token->type) {
-                            // $token->children = $this->generateTokens(array_slice($expression, 2), 1);
-                        }
-                    } elseif ($prevType == T_ASSIGN_OPR) {
-                        $token->type = T_EXPR;
+                if ($token->type === T_NONE) {
+                    $type = null;
+                    switch ($prevType) {
+                        case T_COMMENT_OPR:     $type = T_COMMENT_CONTENT; break;
+                        case T_DECLARE:         $type = T_DECLARE_EXPR;    break;
+                        case T_MODULE:          $type = T_MODULE_EXPR;  break;
+                        case T_USE:             $type = T_USE_EXPR;        break;
+                        case T_CONST:           $type = T_CONST_EXPR;      break;
+                        case T_OBJECT:          $type = T_OBJECT_ID; break;
+                        case T_OBJECT_ID:
+                            if ($token->value === C_EXTENDS) {
+                                $type = T_EXTENDS_MODF;
+                                $nextType = T_OBJECT_ID;
+                            }
+                            elseif ($token->value === C_IMPLEMENTS) {
+                                $type = T_IMPLEMENTS_MODF;
+                                $nextType = T_OBJECT_ID;
+                                // prd($token);
+                            }
+                            // else {
+                            //     // throw new \Exception("..");
+                            // }
+                            break;
                     }
+                    if (!$type) {
+                        pre($token->value, $prevType, $nextType);
+                    }
+                    if (!$type) {
+                        if ($nextType === T_ASSIGN_OPR) {
+                            $type = T_VAR_ID;
+                        } elseif ($expression = isValidExpression($token->value)) {
+                            $type = getTokenTypeFromConst($expression['type'].'_expr');
+                            if ($type) {
+                                // $token->children = $this->generateTokens(array_slice($expression, 2));
+                            }
+                        } elseif ($prevType === T_ASSIGN_OPR) {
+                            $type = T_EXPR;
+                        }
+                    }
+
+                    $token->type = $type;
+                    if ($prev) $prev->type = $prevType;
+                    if ($next) $next->type = $nextType;
                 }
             }
         }
@@ -150,7 +174,6 @@ class Lexer extends LexerBase
             case self::$eol:    return T_EOL;
             case self::$space:  return T_SPACE;
             case self::$indent: return T_INDENT;
-            case 'declare': return T_DECLARE;
             case '=':           return T_ASSIGN_OPR;
             case '.':           return T_DOT;
             case ':':           return T_COLON;
@@ -163,17 +186,20 @@ class Lexer extends LexerBase
             case ']':           return T_CLOSE_BRKT;
 
             // bunlar icin getTokenTypeFromConst() kullan sonra
+            case 'declare': return T_DECLARE;
+            case 'module': return T_MODULE;
+            // case 'object': case 'interface': case 'trait': return T_OBJECT;
+            // case 'extends': return T_EXTENDS_MODF;
+            // case 'implements': return T_IMPLEMENTS_MODF;
+            case 'abstract': return T_ABSTRACT_MODF;
+            case 'final': return T_FINAL_MODF;
+
+            case 'static': case 'global': case 'public': case 'private': case 'protected': return T_MODF;
+            case 'func': return T_FUNCTION;
+
             case 'null': return T_NULL;
             case 'true': case 'false': return T_BOOLEAN;
             case 'for': case 'foreach': case 'while': return T_LOOP;
-            case 'class': case 'interface': case 'trait': return T_OBJECT;
-            case 'extends': return T_EXTENDS_MDFR;
-            case 'implements': return T_IMPLEMENTS_MDFR;
-            case 'abstract': return T_ABSTRACT_MDFR;
-            case 'final': return T_FINAL_MDFR;
-
-            case 'static': case 'public': case 'private': case 'protected': return T_MODIFIER;
-            case 'func': case 'function': return T_FUNCTION;
 
             case 'die': case 'echo': case 'empty': case 'eval': case 'exit': case 'include': case 'include_once': case 'isset': case 'list': case 'print': case 'require': case 'require_once': case 'unset': case '__halt_compiler':
                 return T_FUNCTION_ID;
@@ -208,139 +234,6 @@ class Lexer extends LexerBase
     }
 }
 
-class Token
-{
-    public function __construct(Tokens $tokens, array $data)
-    {
-        $this->tokens = $tokens;
-        foreach ($data as $key => $value) {
-            $this->{$key} = $value;
-        }
-    }
-    public function __get($name)
-    {
-        switch ($name) {
-            case 'prev': return $this->prev();
-            case 'next': return $this->next();
-        }
-    }
-    public function hasPrev()
-    {
-        return $this->tokens->has($this->index - 1);
-    }
-    public function hasNext()
-    {
-        return $this->tokens->has($this->index + 1);
-    }
-    public function prev()
-    {
-        return $this->tokens->get($this->index - 1);
-    }
-    public function next()
-    {
-        return $this->tokens->get($this->index + 1);
-    }
-    public function toArray()
-    {
-        return get_object_vars($this);
-    }
-}
-
-class Tokens
-{
-    private $tokens = [];
-    private $tokensIndex = 0;
-    private $tokensIndexPointer = 0;
-
-    public function __construct(array $tokens = null)
-    {
-        if ($tokens) foreach ($tokens as $token) {
-            if (is_object($token)) {
-                $token = $token->toArray();
-            }
-            $this->add($token);
-        }
-    }
-    public function __get($name)
-    {
-        switch ($name) {
-            case 'prev': return $this->prev();
-            case 'next': return $this->next();
-            case 'first': return $this->first();
-            case 'last': return $this->last();
-        }
-    }
-
-    public function add(array $data)
-    {
-        $token = new Token($this, $data);
-        $token->index = $this->tokensIndex;
-        $this->tokens[$this->tokensIndex] = $token;
-        $this->tokensIndex++;
-    }
-
-    public function has(int $i)
-    {
-        return isset($this->tokens[$i]);
-    }
-    public function hasPrev()
-    {
-        return $this->has($this->tokensIndexPointer - 1);
-    }
-    public function hasNext()
-    {
-        return $this->has($this->tokensIndexPointer);
-    }
-
-    public function get(int $i)
-    {
-        return $this->tokens[$i] ?? null;
-    }
-    public function prev()
-    {
-        return $this->get($this->tokensIndexPointer--);
-    }
-    public function next()
-    {
-        return $this->get($this->tokensIndexPointer++);
-    }
-
-    public function first()
-    {
-        return $this->get(0);
-    }
-    public function last()
-    {
-        return $this->get($this->tokensIndex - 1);
-    }
-
-    public function tokensIndex()
-    {
-        return $this->tokensIndex;
-    }
-    public function tokensIndexPointer()
-    {
-        return $this->tokensIndexPointer;
-    }
-
-    public function reset()
-    {
-        $this->tokensIndexPointer = 0;
-    }
-    public function count()
-    {
-        return count($this->tokens);
-    }
-    public function isEmpty()
-    {
-        return empty($this->tokens);
-    }
-    public function toArray()
-    {
-        return array_filter($this->tokens); // array_filter?
-    }
-}
-
 function getTokenTypeFromConst($name) {
     // $name = sprintf('%s\\T_%s', __namespace__, strtoupper($name));
     // if (defined($name)) {
@@ -351,4 +244,6 @@ function getTokenTypeFromConst($name) {
     if (defined(__namespace__ .'\\'. $name)) {
         return $name; // @tmp // constant($name);
     }
+    throw new \Exception("Undefined constant: '$name'"); // @debug
+
 }

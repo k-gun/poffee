@@ -1,1 +1,1 @@
-class Book extends BookBase implements BookInterface:
+final object Book > BookBase >> BookInterface, BookInterfaceOther:
