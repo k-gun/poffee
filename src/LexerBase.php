@@ -242,7 +242,15 @@ function isValidColonBody($input, array $inputArray, int $line) {
         return true;
     }
     if (C_COLON === substr(chop($input), -1)) {
-        return isset($inputArray[$line]) && ('' !== trim($inputArray[$line]))
+        pre($input);
+        $line1 = $input;
+        $line2 =& $inputArray[$line];
+        var_dump($line1, $line2);
+        // die;
+        $parentIndent = preg_replace('~^(\s+).*~', '\1', $line1);
+        $currentIndent = preg_replace('~^(\s+).*~', '\1', $line2);
+        var_dump($parentIndent, $currentIndent);
+        return strlen($currentIndent) - 1 > strlen($parentIndent) -1 && ('' !== trim($inputArray[$line]))
             && '    ' === substr($inputArray[$line], 0, 4); // bunu degistir sonra clas icine alinca fn'i
     }
     return true;

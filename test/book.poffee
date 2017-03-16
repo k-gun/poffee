@@ -1,4 +1,5 @@
 module Book:
     object Book > BookBase >> BookInterface, BookInterfaceOther:
         var id
-
+        fun setId(int id):
+            //
