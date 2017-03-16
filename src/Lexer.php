@@ -36,6 +36,7 @@ class Lexer extends LexerBase
         $indentLength = 4,
         $cache = []
     ;
+    private $file, $line;
 
     public function __construct(string $indent = null)
     {
@@ -45,9 +46,10 @@ class Lexer extends LexerBase
         }
     }
 
-    public function scan($file, $line, $input)
+    public function scan($file, $line, $input, $inputArray = null)
     {
         if (!isValidColon($input)) {throw new \Exception(sprintf('Sytax error in %s line %s, expecting ":" for the end of line!', $file, $line));}
+        if (!isValidColonBody($input, $inputArray, $line)) {throw new \Exception(sprintf('Sytax error in %s line %s, expecting body after colon-ending line!', $file, $line));}
         $lexer = new self(self::$indent);
         $lexer->file = $file;
         $lexer->line = $line;
@@ -63,7 +65,7 @@ class Lexer extends LexerBase
                 (?:\s*(>)\s+([a-z_]\w*))?               # extends
                 (?:\s*(>>)\s+([a-z_](?:[\w,\s]*)))?     # implements
               (:))
-            | (?:(^\s+)                                 # var (static?)
+            | (?:(^\s+)                                 # property (static?)
                 (?:(var)
                     (?:\s+(@|@@)\s*)?                   # private, protected
                        \s+([a-z_]\w*)                   # public

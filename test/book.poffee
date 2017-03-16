@@ -1,2 +1,4 @@
 object Book:
     var id
+
+    method setId(int id):

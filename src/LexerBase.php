@@ -10,7 +10,7 @@ const T_DECLARE = 'T_DECLARE', T_DECLARE_EXPR = 'T_DECLARE_EXPR';
 const T_MODULE = 'T_MODULE', T_MODULE_EXPR = 'T_MODULE_EXPR';
 const T_USE = 'T_USE', T_USE_EXPR = 'T_USE_EXPR';
 const T_CLASS = 'T_CLASS';
-
+const T_PASS = 'T_PASS';
 
 const T_OPR = 'T_OPR';
 const T_ASSIGN_OPR = 'T_ASSIGN_OPR';
@@ -78,6 +78,7 @@ const C_IMPLEMENTS = '>>';
 // const C_VAR_PUBLIC = '';
 const C_VAR_PRIVATE = '@';
 const C_VAR_PROTECTED = '@@';
+const C_PASS = 'pass';
 
 abstract class LexerBase
 {}
@@ -221,6 +222,16 @@ function isValidID($input) {
 }
 function isValidColon($input) {
     return $input && $input !== PHP_EOL &&
-        preg_match('~^(?:(\s+)?module|abstract|final|object|func|if|else|elseif|for|while)~', $input)
+        preg_match('~^(?:\s+)?(?:module|abstract|final|object|method|func|if|else|elseif|for|while)~', $input)
             ? (C_COLON === substr(chop($input), -1)) : true;
+}
+function isValidColonBody($input, array $inputArray, int $line) {
+    pre($input, $inputArray);
+    if (!isset($inputArray[$line - 1])) {
+        return true;
+    }
+    if (C_COLON === substr(chop($input), -1)) {
+        return isset($inputArray[$line]) && ('' !== trim($inputArray[$line]));
+    }
+    return true;
 }
