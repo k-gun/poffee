@@ -12,10 +12,10 @@ class Parser
 
     public function parse($file)
     {
-        $file = file($file);
+        $lines = file($file);
         $tokens = [];
-        foreach ($file as $i => $value) {
-            $tokens = array_merge($tokens, $this->lexer->scan($i + 1, $value)->toArray());
+        foreach ($lines as $i => $line) {
+            $tokens = array_merge($tokens, $this->lexer->scan($file, $i + 1, $line)->toArray());
         }
         $tokens = clear($tokens);
         prf($tokens);

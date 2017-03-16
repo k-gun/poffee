@@ -1,44 +1,26 @@
 [
     {
-        "value": "\/\/",
-        "type": "T_COMMENT_OPERATOR",
-        "line": 1,
-        "index": 0
-    },
-    {
-        "value": "comment",
-        "type": "T_NONE",
-        "line": 1,
-        "index": 1
-    },
-    {
-        "value": "\n",
-        "type": "T_EOL",
-        "line": 1,
-        "index": 2
-    },
-    {
         "value": "a",
         "type": "T_VAR_IDENTIFIER",
-        "line": 2,
+        "line": 1,
         "index": 0
     },
     {
         "value": "=",
         "type": "T_ASSIGN_OPERATOR",
-        "line": 2,
+        "line": 1,
         "index": 1
     },
     {
-        "value": "1 * 2",
+        "value": "a ? a : [1, 2]",
         "type": "T_NONE",
-        "line": 2,
+        "line": 1,
         "index": 2
     },
     {
         "value": "\n",
         "type": "T_EOL",
-        "line": 2,
+        "line": 1,
         "index": 3
     }
 ]

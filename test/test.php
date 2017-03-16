@@ -1,19 +1,19 @@
 <?php autoload();
 
-$s = file_get_contents('book.poffee');
-$f = PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_OFFSET_CAPTURE;
-$p = '~
-     ((use)\s*([^\r\n]+))
-    |(([a-z][a-z0-9_]+)\s*=\s*(.+))
-    |((if|else|elseif)\s*(.*)\s*(:))
-    |((\s{4})([a-z][a-z0-9_]+)\s*(.+))
-~xi';
+// $s = file_get_contents('book.poffee');
+// $f = PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_OFFSET_CAPTURE;
+// $p = '~
+//      ((use)\s*([^\r\n]+))
+//     |(([a-z][a-z0-9_]+)\s*=\s*(.+))
+//     |((if|else|elseif)\s*(.*)\s*(:))
+//     |((\s{4})([a-z][a-z0-9_]+)\s*(.+))
+// ~xi';
 // $m = preg_split($p, $s, -1, $f);
 // prd($m);
 
 
 $parser = new Poffee\Parser();
-$parser->parse('book.poffee');
+$parser->parse(__dir__.'/book.poffee');
 // pre($parser);
 
 
