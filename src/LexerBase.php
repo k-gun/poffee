@@ -22,7 +22,12 @@ const T_QUESTION = 'T_QUESTION';
 
 const T_VAR = 'T_VAR';
 const T_OBJECT = 'T_OBJECT';
-const T_MODIFIER = 'T_MODIFIER';
+
+const T_MDFR = 'T_MDFR';
+const T_EXTENDS_MDFR = 'T_EXTENDS_MDFR';
+const T_IMPLEMENTS_MDFR = 'T_IMPLEMENTS_MDFR';
+const T_ABSTRACT_MDFR = 'T_ABSTRACT_MDFR';
+const T_FINAL_MDFR = 'T_FINAL_MDFR';
 
 const T_CONST = 'T_CONST';
 const T_CLASS = 'T_CLASS';

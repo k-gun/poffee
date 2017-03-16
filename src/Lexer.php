@@ -60,7 +60,10 @@ class Lexer extends LexerBase
             | (?:(declare)\s+[\'"](.+)[\'"])          # declare
             | (?:(namespace)\s+(.+))          # namespace
             | (?:(use)\s+(.+))          # use
-            | (?:(class|interface|trait)\s+([a-z_]\w*)(:))          # object
+            | (?:(class|interface|trait)\s+([a-z_]\w*)      # object
+                (?:\s*(extends)\s+([a-z_]\w*))?
+                (?:\s*(implements)\s+([a-z_]\w*))?
+              (:))
             | (?:(^\s+)?([a-z_]\w*)\s*(=)\s*(.+))   # assign
         ~ix';
         $matches = $lexer->getMatches($pattern, $input);
@@ -108,7 +111,6 @@ class Lexer extends LexerBase
             ];
             $tokens[] = $token;
         }
-
         $tokens = new Tokens($tokens);
         if (!$tokens->isEmpty()) {
             while ($token = $tokens->next()) {
@@ -123,6 +125,8 @@ class Lexer extends LexerBase
                         $token->type = T_NAMESPACE_EXPR;
                     } elseif ($prevType == T_USE) {
                         $token->type = T_USE_EXPR;
+                    } elseif ($prevType == T_OBJECT || $prevType == T_EXTENDS_MDFR || $prevType == T_IMPLEMENTS_MDFR) {
+                        $token->type = T_OBJECT_ID;
                     } elseif ($nextType == T_ASSIGN_OPR) {
                         $token->type = T_VAR_ID;
                     } elseif ($expression = isValidExpression($token->value)) {
@@ -157,19 +161,21 @@ class Lexer extends LexerBase
             case ')':           return T_CLOSE_PRNT;
             case '[':           return T_OPEN_BRKT;
             case ']':           return T_CLOSE_BRKT;
-            case 'null':
-                return T_NULL;
-            case 'true': case 'false':
-                return T_BOOLEAN;
-            case 'for': case 'foreach': case 'while':
-                return T_LOOP;
-            case 'class': case 'interface': case 'trait':
-                return T_OBJECT;
-            case 'func': case 'function':
-                return T_FUNCTION;
-            case 'new': case 'abstract': case 'final': case 'static': case 'public': case 'private': case 'protected': case 'extends': case 'implements':
-                return T_MODIFIER;
-            case 'declare': case 'die': case 'echo': case 'empty': case 'eval': case 'exit': case 'include': case 'include_once': case 'isset': case 'list': case 'print': case 'require': case 'require_once': case 'unset': case '__halt_compiler':
+
+            // bunlar icin getTokenTypeFromConst() kullan sonra
+            case 'null': return T_NULL;
+            case 'true': case 'false': return T_BOOLEAN;
+            case 'for': case 'foreach': case 'while': return T_LOOP;
+            case 'class': case 'interface': case 'trait': return T_OBJECT;
+            case 'extends': return T_EXTENDS_MDFR;
+            case 'implements': return T_IMPLEMENTS_MDFR;
+            case 'abstract': return T_ABSTRACT_MDFR;
+            case 'final': return T_FINAL_MDFR;
+
+            case 'static': case 'public': case 'private': case 'protected': return T_MODIFIER;
+            case 'func': case 'function': return T_FUNCTION;
+
+            case 'die': case 'echo': case 'empty': case 'eval': case 'exit': case 'include': case 'include_once': case 'isset': case 'list': case 'print': case 'require': case 'require_once': case 'unset': case '__halt_compiler':
                 return T_FUNCTION_ID;
             default:
                 $fChar = $value[0]; $lChar = substr($value, -1);
