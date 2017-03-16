@@ -54,7 +54,7 @@ class Lexer extends LexerBase
         $lexer->file = $file;
         $lexer->line = $line;
         $pattern = '~
-              (?:(^\s+)?(//)\s*(.+))                           # comment
+              (?:(^\s+)?(?<![\'"])(//)\s*(.+))          # comment
             | (?:(declare)\s+([\'"].+[\'"]))            # declare
             | (?:(module)\s+([a-z_]\w*)\s*(:))          # module (namespace)
             | (?:(use)\s+(.+))                          # use
@@ -142,60 +142,43 @@ class Lexer extends LexerBase
         $tokens = new Tokens($tokens);
         if (!$tokens->isEmpty()) {
             while ($token = $tokens->next()) {
-                $tokenType = $token->type; $tokenValue = $token->value;
                 $prev = $token->prev(); $prevType = $prev ? $prev->type : null;
                 $next = $token->next(); $nextType = $next ? $next->type : null;
-                if (!$tokenType) {
-                    switch ($prevType) {
-                        case T_COMMENT_OPR:     $tokenType = T_COMMENT_CONTENT; break;
-                        case T_DECLARE:         $tokenType = T_DECLARE_EXPR;    break;
-                        case T_MODULE:          $tokenType = T_MODULE_ID;  break;
-                        case T_USE:             $tokenType = T_USE_EXPR;        break;
-                        case T_OBJECT:          $tokenType = T_OBJECT_ID; break;
-                        case T_OBJECT_ID:
-                            if ($tokenValue === C_EXTENDS) {
-                                $tokenType = T_EXTENDS_MODF; $nextType = T_OBJECT_ID;
-                            } elseif ($tokenValue === C_IMPLEMENTS) {
-                                $tokenType = T_IMPLEMENTS_MODF; $nextType = T_OBJECT_ID;
-                            } // else  error ?
-                            break;
-                        case T_CONST:
-                            if ($tokenValue === C_PRIVATE) {
-                                $tokenType = T_PRIVATE; $nextType = T_CONST_PRIVATE;
-                            } elseif ($tokenValue === C_PROTECTED) {
-                                $tokenType = T_PROTECTED; $nextType = T_CONST_PROTECTED;
-                            } else {
-                                $tokenType = T_CONST_PUBLIC;
-                            }
-                            break;
-                        case T_FUN_ID: case T_FUN_ID: case T_FUN_ID:
-                            $tokenType = T_FUN_ARG_EXPR; break;
-                        case T_COLON:
-                            if ($prev->prev && $prev->prev->type === T_FUN_ARG_EXPR) {
-                                $tokenType = T_FUN_RET_TYPE;
-                            }
-                            break;
+                $tokenType = $token->type; $tokenValue = $token->value;
+                if ($tokenType === T_COMMENT) {
+                    $next->type = T_COMMENT_CONTENT;
+                } elseif ($tokenType === T_DECLARE) {
+                    $next->type = T_DECLARE_EXPR;
+                } elseif ($tokenType === T_MODULE) {
+                    $next->type = T_MODULE_ID;
+                } elseif ($tokenType === T_USE) {
+                    $next->type = T_USE_EXPR;
+                } elseif ($tokenType === T_OBJECT) {
+                    $next->type = T_OBJECT_ID;
+                } elseif ($tokenType === T_OBJECT_ID) {
+                    while (($t = $tokens->next()) && $t->value !== C_COLON) {
+                        if ($t->value === C_EXTENDS) {
+                            $t->type = T_EXTENDS;
+                        } elseif ($t->value === C_IMPLEMENTS) {
+                            $t->type = T_IMPLEMENTS;
+                        } else {
+                            $t->type = T_OBJECT_ID; // class, interface or trait
+                        }
                     }
-                    // if (!$tokenType) {
-                    //     if ($nextType === T_ASSIGN_OPR) {
-                    //         $tokenType = T_VAR_ID;
-                    //     // } elseif ($expression = isValidExpression($tokenValue)) {
-                    //     //     $tokenType = getTokenTypeFromConst($expression['type'].'_expr');
-                    //     //     if ($tokenType) {
-                    //     //         $token->children = $this->generateTokens(array_slice($expression, 2));
-                    //     //     }
-                    //     } elseif ($prevType === T_ASSIGN_OPR) {
-                    //         $tokenType = T_EXPR;
-                    //     }
-                    // }
-
-                    $token->type = $tokenType;
-                    if ($prev && $prevType) $prev->type = $prevType;
-                    if ($next && $nextType) $next->type = $nextType;
+                } elseif ($tokenType === T_CONST) {
+                    while (($t = $tokens->next()) && $t->value !== C_ASSIGN) {
+                        if ($t->type) continue;
+                        if ($t->value === C_PRIVATE) {
+                            $t->type = T_PRIVATE;
+                        } elseif ($t->value === C_PROTECTED) {
+                            $t->type = T_PROTECTED;
+                        } else {
+                            $t->type = T_CONST_ID;
+                        }
+                    }
                 } elseif ($tokenType === T_VAR) {
                     while (($t = $tokens->next()) && $t->value !== C_ASSIGN) {
                         if ($t->type) continue;
-                        pre($t->value, $t->type);
                         if ($t->value === C_PRIVATE) {
                             $t->type = T_PRIVATE;
                         } elseif ($t->value === C_PROTECTED) {
@@ -204,25 +187,6 @@ class Lexer extends LexerBase
                             $t->type = T_VAR_ID;
                         }
                     }
-                    // die;
-                    // while (($t = $tokens->next()) && ($t->value === C_PRIVATE || $t->value === C_PROTECTED)) {
-                    //     switch ($t->value) {
-                    //         case C_PRIVATE: $t->type = T_PRIVATE; $t->next->type = T_VAR_ID; break;
-                    //         case C_PROTECTED: $t->type = T_PROTECTED; $t->next->type = T_VAR_ID; break;
-                    //     }
-                    //     $nextType = $t->type;
-                    // }
-                    // if ($nextType === T_PRIVATE || $nextType === T_PROTECTED) {
-                    //     $tokenType = T_STATIC;
-                    // } elseif ($tokenValue === C_PRIVATE) {
-                    //     $tokenType = T_PRIVATE; $nextType = T_VAR_ID;
-                    // } elseif ($tokenValue === C_PROTECTED) {
-                    //     $tokenType = T_PROTECTED; $nextType = T_VAR_ID;
-                    // } elseif ($next->next && $next->next->type === T_ASSIGN_OPR) {
-                    //     $tokenType = T_STATIC; $nextType = T_VAR_ID;
-                    // } else {
-                    //     $tokenType = T_VAR_ID;
-                    // }
                 } elseif ($tokenType === T_FUN) {
                     while (($t = $tokens->next()) && $t->value !== C_COLON) {
                         if ($t->type) continue;
@@ -235,6 +199,17 @@ class Lexer extends LexerBase
                             $t->prev->type = T_FUN_ID;
                         }
                     }
+                // } elseif (!$tokenType) { // en son
+                //     if ($nextType === T_ASSIGN) {
+                //         $tokenType = T_VAR_ID;
+                //     // } elseif ($expression = isValidExpression($tokenValue)) {
+                //     //     $tokenType = getTokenTypeFromConst($expression['type'].'_expr');
+                //     //     if ($tokenType) {
+                //     //         $token->children = $this->generateTokens(array_slice($expression, 2));
+                //     //     }
+                //     } elseif ($prevType === T_ASSIGN) {
+                //         $tokenType = T_EXPR;
+                //     }
                 }
             }
         }
@@ -248,12 +223,12 @@ class Lexer extends LexerBase
             case self::$eol:    return T_EOL;
             case self::$space:  return T_SPACE;
             case self::$indent: return T_INDENT;
-            case '=':           return T_ASSIGN_OPR;
+            case '=':           return T_ASSIGN;
             case '.':           return T_DOT;
             case ':':           return T_COLON;
             case ',':           return T_COMMA;
             case '?':           return T_QUESTION;
-            case '//':          return T_COMMENT_OPR;
+            case '//':          return T_COMMENT;
             case '(':           return T_OPEN_PRNT;
             case ')':           return T_CLOSE_PRNT;
             case '[':           return T_OPEN_BRKT;
@@ -262,7 +237,8 @@ class Lexer extends LexerBase
             // bunlar icin getTokenTypeFromConst() kullan sonra
             case 'declare': return T_DECLARE;
             case 'module': return T_MODULE;
-            case 'abstract': return T_ABSTRACT_MODF;
+            case 'use': return T_USE;
+            case 'abstract': return T_ABSTRACT;
             case 'final': return T_FINAL;
             case 'object': case 'interface': case 'trait': return T_OBJECT;
             case 'const': return T_CONST;
@@ -283,14 +259,17 @@ class Lexer extends LexerBase
                 return T_FUN_ID;
             default:
                 $fChar = $value[0]; $lChar = substr($value, -1);
-                if ($fChar === '(' && $lChar === ')') {
-                    // return T_EXPR; ?? // yukarda isValidExpression sorgusunu engelliyor
-                }
                 if ($fChar === "'" && $lChar === "'") {
                     return T_STRING;
                 }
                 if ($fChar === '"' && $lChar === '"') {
                     return T_STRING;
+                }
+                if ($fChar === '[' && $lChar === ']') {
+                    return T_ARRAY_EXPR;
+                }
+                if ($fChar === '(' && $lChar === ')') {
+                    // return T_EXPR; ?? // yukarda isValidExpression sorgusunu engelliyor
                 }
                 if (is_numeric($value)) {
                     return T_NUMBER;

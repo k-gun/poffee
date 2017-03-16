@@ -5,7 +5,6 @@ const T_NONE = 'T_NONE'; // 0;
 const T_EOL = 'T_EOL'; // -1;
 const T_INDENT = 'T_INDENT'; // -2;
 const T_SPACE = 'T_SPACE'; // -3;
-const T_PHP_TAG_OPEN = 'T_PHP_TAG_OPEN', T_PHP_TAG_CLOSE = 'T_PHP_TAG_CLOSE';
 
 const T_DECLARE = 'T_DECLARE', T_DECLARE_EXPR = 'T_DECLARE_EXPR';
 const T_USE = 'T_USE', T_USE_EXPR = 'T_USE_EXPR';
@@ -13,8 +12,8 @@ const T_CLASS = 'T_CLASS';
 const T_MODULE = 'T_MODULE';
 
 const T_OPR = 'T_OPR';
-const T_ASSIGN_OPR = 'T_ASSIGN_OPR';
-const T_COMMENT_OPR = 'T_COMMENT_OPR', T_COMMENT_CONTENT = 'T_COMMENT_CONTENT';
+const T_ASSIGN = 'T_ASSIGN';
+const T_COMMENT = 'T_COMMENT', T_COMMENT_CONTENT = 'T_COMMENT_CONTENT';
 
 const T_DOT = 'T_DOT';
 const T_COMMA = 'T_COMMA';
@@ -23,16 +22,12 @@ const T_QUESTION = 'T_QUESTION';
 
 const T_OBJECT = 'T_OBJECT';
 const T_METHOD = 'T_METHOD';
-const T_VAR_PUBLIC = 'T_VAR_PUBLIC', T_VAR_PRIVATE = 'T_VAR_PRIVATE', T_VAR_PROTECTED = 'T_VAR_PROTECTED';
-const T_FUN = 'T_FUN', T_FUN_PUBLIC = 'T_FUN_PUBLIC', T_FUN_PRIVATE = 'T_FUN_PRIVATE', T_FUN_PROTECTED = 'T_FUN_PROTECTED';
-const T_CONST = 'T_CONST', T_CONST_PUBLIC = 'T_CONST_PUBLIC', T_CONST_PRIVATE = 'T_CONST_PRIVATE', T_CONST_PROTECTED = 'T_CONST_PROTECTED';;
+const T_FUN = 'T_FUN';
+const T_CONST = 'T_CONST';
 
-const T_MODF = 'T_MODF';
-const T_EXTENDS_MODF = 'T_EXTENDS_MODF';
-const T_IMPLEMENTS_MODF = 'T_IMPLEMENTS_MODF';
-const T_ABSTRACT_MODF = 'T_ABSTRACT_MODF';
-const T_FINAL_MODF = 'T_FINAL_MODF', T_STATIC_MODF = 'T_STATIC_MODF';
-const T_PUBLIC_MODF = 'T_PUBLIC_MODF', T_PRIVATE_MODF = 'T_PRIVATE_MODF', T_PROTECTED_MODF = 'T_PROTECTED_MODF';
+const T_EXTENDS = 'T_EXTENDS';
+const T_IMPLEMENTS = 'T_IMPLEMENTS';
+const T_ABSTRACT = 'T_ABSTRACT';
 
 const T_FINAL = 'T_FINAL';
 const T_STATIC = 'T_STATIC';
@@ -58,7 +53,6 @@ const T_VAR_ID = 'T_VAR_ID';
 const T_FUN_ID = 'T_FUN_ID';
 const T_CONST_ID = 'T_CONST_ID';
 const T_OBJECT_ID = 'T_OBJECT_ID';
-// const T_PROPERTY_ID = 'T_PROPERTY_ID';
 const T_METHOD_ID = 'T_METHOD_ID';
 const T_MODULE_ID = 'T_MODULE_ID';
 
@@ -69,18 +63,19 @@ const T_CALLABLE_CALL_EXPR = 'T_CALLABLE_CALL_EXPR';
 const T_METHOD_CALL_EXPR = 'T_METHOD_CALL_EXPR';
 const T_PROPERTY_EXPR = 'T_PROPERTY_EXPR';
 const T_ARRAY_EXPR = 'T_ARRAY_EXPR';
-// const T_VAR_EXPR = 'T_VAR_EXPR';
-// const T_CONST_EXPR = 'T_CONST_EXPR';
 const T_FUN_ARG_EXPR = 'T_FUN_ARG_EXPR';
 
 const T_NULL = 'T_NULL';
 const T_STRING = 'T_STRING';
 const T_NUMBER = 'T_NUMBER';
 const T_BOOL = 'T_BOOL';
+const T_ARRAY = 'T_ARRAY';
 const T_THIS = 'T_THIS';
 
 // const T_FUN_CALL = 'T_FUN_CALL';
 const T_FUN_RET_TYPE = 'T_FUN_RET_TYPE';
+
+const T_PHP_TAG_OPEN = 'T_PHP_TAG_OPEN', T_PHP_TAG_CLOSE = 'T_PHP_TAG_CLOSE';
 
 const C_ASSIGN = '=';
 const C_COLON = ':';
@@ -242,16 +237,11 @@ function isValidColonBody($input, array $inputArray, int $line) {
         return true;
     }
     if (C_COLON === substr(chop($input), -1)) {
-        pre($input);
-        $line1 = $input;
-        $line2 =& $inputArray[$line];
-        var_dump($line1, $line2);
-        // die;
-        $parentIndent = preg_replace('~^(\s+).*~', '\1', $line1);
-        $currentIndent = preg_replace('~^(\s+).*~', '\1', $line2);
-        var_dump($parentIndent, $currentIndent);
-        return strlen($currentIndent) - 1 > strlen($parentIndent) -1 && ('' !== trim($inputArray[$line]))
-            && '    ' === substr($inputArray[$line], 0, 4); // bunu degistir sonra clas icine alinca fn'i
+        $currLine = $input; $nextLine = $inputArray[$line];
+        $currIndent = strlen(preg_replace('~^(\s*).*~', '\\1', $currLine)) - 1;
+        $nextIndent = strlen(preg_replace('~^(\s*).*~', '\\1', $nextLine)) - 1;
+        return $nextIndent > $currIndent && ('' !== trim($nextLine))
+            && '    ' === substr($nextLine, 0, 4); // bunu degistir sonra clas icine alinca fn'i, self::$indent'i kullan
     }
     return true;
 }
