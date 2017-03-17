@@ -6,8 +6,8 @@ const T_EOL = 'T_EOL'; // -1;
 const T_INDENT = 'T_INDENT'; // -2;
 const T_SPACE = 'T_SPACE'; // -3;
 
-const T_DECLARE = 'T_DECLARE', T_DECLARE_EXPR = 'T_DECLARE_EXPR';
-const T_USE = 'T_USE', T_USE_EXPR = 'T_USE_EXPR';
+const T_DECLARE = 'T_DECLARE';
+const T_USE = 'T_USE';
 const T_CLASS = 'T_CLASS';
 const T_MODULE = 'T_MODULE';
 
@@ -40,6 +40,8 @@ const T_IF = 'T_IF';
 const T_ELSE = 'T_ELSE';
 const T_ELSE_IF = 'T_ELSE_IF';
 const T_FOR = 'T_FOR';
+const T_IS = 'T_IS', T_IS_NOT = 'T_IS_NOT';
+const T_ISE = 'T_ISE', T_ISE_NOT = 'T_ISE_NOT';
 
 const T_PRNT_BLOCK = 'T_PRNT_BLOCK';
 const T_OPEN_PRNT = 'T_OPEN_PRNT';
@@ -77,6 +79,9 @@ const T_THIS = 'T_THIS';
 const T_FUN_RET_TYPE = 'T_FUN_RET_TYPE';
 
 const T_PHP_TAG_OPEN = 'T_PHP_TAG_OPEN', T_PHP_TAG_CLOSE = 'T_PHP_TAG_CLOSE';
+
+const T_REQUIRE = 'T_REQUIRE', T_REQUIRE_ONCE = 'T_REQUIRE_ONCE';
+const T_INCLUDE = 'T_INCLUDE', T_INCLUDE_ONCE = 'T_INCLUDE_ONCE';
 
 const C_EOL = PHP_EOL;
 const C_ASSIGN = '=';

@@ -1,12 +1,12 @@
 [
     {
-        "value": "for",
-        "type": "T_FOR",
+        "value": "if",
+        "type": "T_IF",
         "line": 1,
         "index": 0
     },
     {
-        "value": "a, b in c",
+        "value": "a",
         "type": "T_EXPR",
         "line": 1,
         "index": 1
@@ -30,21 +30,51 @@
         "index": 0
     },
     {
-        "value": "\/\/",
-        "type": "T_COMMENT",
+        "value": "is not",
+        "type": "T_IS_NOT",
         "line": 2,
         "index": 1
     },
     {
-        "value": "pass",
-        "type": "T_COMMENT_CONTENT",
+        "value": "1",
+        "type": "T_EXPR",
         "line": 2,
         "index": 2
+    },
+    {
+        "value": ":",
+        "type": "T_COLON",
+        "line": 2,
+        "index": 3
     },
     {
         "value": "\n",
         "type": "T_EOL",
         "line": 2,
+        "index": 4
+    },
+    {
+        "value": "        ",
+        "type": "T_INDENT",
+        "line": 3,
+        "index": 0
+    },
+    {
+        "value": "\/\/",
+        "type": "T_COMMENT",
+        "line": 3,
+        "index": 1
+    },
+    {
+        "value": "pass",
+        "type": "T_COMMENT_CONTENT",
+        "line": 3,
+        "index": 2
+    },
+    {
+        "value": "\n",
+        "type": "T_EOL",
+        "line": 3,
         "index": 3
     }
 ]

@@ -101,7 +101,9 @@ class Lexer extends LexerBase
                    (?:\s*([a-z_]\w*))?                  # return type
                 )
               )
-            | (?:(^\s+)?(?:(if|elseif|for)\s+(.*)|(else))\s*(:)) # if, else, elseif, for
+            | (?:(^\s+)?(?:(if|elseif|for|ise?(?:\s*(?:not)?)) # if, .. for, is ..
+                \s+(.+)|(else))\s*(:))
+            | (?:(^\s+)?(require|include(?:_once)?)\s*(.*))                # require, include ..
             | (?:(^\s+)?(return)\s*(.*))                # return
             #| (?:(^\s+)?([a-z_]\w*)\s*(=)\s*(.+))       # assign
         )~ix';
@@ -159,11 +161,11 @@ class Lexer extends LexerBase
                 if ($tokenType === T_COMMENT) {
                     $next->type = T_COMMENT_CONTENT;
                 } elseif ($tokenType === T_DECLARE) {
-                    $next->type = T_DECLARE_EXPR;
+                    $next->type = T_EXPR;
                 } elseif ($tokenType === T_MODULE) {
                     $next->type = T_MODULE_ID;
                 } elseif ($tokenType === T_USE) {
-                    $next->type = T_USE_EXPR;
+                    $next->type = T_EXPR;
                 } elseif ($tokenType === T_OBJECT) {
                     $next->type = T_OBJECT_ID;
                 } elseif ($tokenType === T_OBJECT_ID) {
@@ -216,7 +218,12 @@ class Lexer extends LexerBase
                             $t->type = T_FUN_RET_TYPE;
                         }
                     }
-                } elseif ($tokenType === T_IF || $tokenType === T_ELSE_IF || $tokenType === T_FOR) {
+                } elseif (
+                    $tokenType === T_IF || $tokenType === T_ELSE_IF ||
+                    $tokenType === T_IS || $tokenType === T_IS_NOT ||
+                    $tokenType === T_ISE || $tokenType === T_ISE_NOT ||
+                    $tokenType === T_FOR
+                ) {
                     $next->type = T_EXPR;
                 } elseif ($tokenType === T_RETURN) {
                     if (!$next->type) {
@@ -239,7 +246,6 @@ class Lexer extends LexerBase
                     //     $tokenType = T_EXPR;
                     // }
                 }
-
 
                 // if no type error?
             }
@@ -284,10 +290,15 @@ class Lexer extends LexerBase
             case 'null': return T_NULL;
             case 'true': case 'false': return T_BOOL;
             case 'if': return T_IF; case 'else': return T_ELSE; case 'elseif': return T_ELSE_IF;
-            case 'for': return T_FOR;
+            case 'for': return T_FOR; case 'in': return T_IN;
+            case 'is': return T_IS; case 'ise': return T_ISE;
+            case 'is not': return T_IS_NOT; case 'ise not': return T_ISE_NOT;
+            case 'require': return T_REQUIRE; case 'require_once': return T_REQUIRE_ONCE;
+            case 'include': return T_INCLUDE; case 'include_once': return T_INCLUDE_ONCE;
 
-            case 'die': case 'echo': case 'empty': case 'eval': case 'exit': case 'include': case 'include_once': case 'isset': case 'list': case 'print': case 'require': case 'require_once': case 'unset': case '__halt_compiler':
-                return T_FUN_ID;
+            case 'die': case 'echo': case 'empty': case 'eval': case 'exit':
+            case 'isset': case 'list': case 'print': case 'unset': case '__halt_compiler': return T_FUN_ID;
+
             default:
                 $fChar = $value[0]; $lChar = substr($value, -1);
                 if ($fChar === "'" && $lChar === "'") {
