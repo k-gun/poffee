@@ -1,3 +1,4 @@
-if a:
-    is 1:
-        // pass
+if not isset(this.table, this.tablePrimary):
+    throw new InvalidValueException(
+        "You need to specify both 'table' and 'tablePrimary' properties!"
+    )
