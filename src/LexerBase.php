@@ -21,8 +21,8 @@ const T_COLON = 'T_COLON';
 const T_QUESTION = 'T_QUESTION';
 
 const T_OBJECT = 'T_OBJECT';
-const T_METHOD = 'T_METHOD';
 const T_FUN = 'T_FUN';
+const T_FUN_ANON = 'T_FUN_ANON';
 const T_CONST = 'T_CONST';
 
 const T_EXTENDS = 'T_EXTENDS';
@@ -88,6 +88,17 @@ const C_PRIVATE = '@';
 const C_PROTECTED = '@@';
 const C_PHP_OPEN = '<?php';
 const C_PHP_CLOSE = '?>';
+
+const KEYWORDS = ['__halt_compiler', 'abstract', 'and', 'array', 'as', 'break',
+    'callable', 'case', 'catch', 'class', 'clone', 'const', 'continue', 'declare', 'default',
+    'die', 'do', 'echo', 'else', 'elseif', 'empty', 'enddeclare', 'endfor', 'endforeach', 'endif',
+    'endswitch', 'endwhile', 'eval', 'exit', 'extends', 'final', 'finally', 'for', 'foreach',
+    'function', 'global', 'goto', 'if', 'implements', 'include', 'include_once', 'instanceof',
+    'insteadof', 'interface', 'isset', 'list', 'namespace', 'new', 'or', 'print', 'private',
+    'protected', 'public', 'require', 'require_once', 'return', 'static', 'switch', 'throw',
+    'trait', 'try', 'unset', 'use', 'var', 'while', 'xor', 'yield',
+    'module', 'fun', 'in',
+];
 
 abstract class LexerBase
 {}
@@ -229,10 +240,25 @@ class Tokens
 function isValidID($input) {
     return preg_match('~^(?:[a-z_]\w*)$~i', $input);
 }
+function isValidKeyword($input) {
+    return in_array($input, KEYWORDS);
+}
 function isValidColon($input) {
-    return $input && $input !== PHP_EOL &&
-        preg_match('~^(?:\s+)?(?:module|abstract|final|object|if|else|elseif|for|while)~', $input)
-            ? (C_COLON === substr(chop($input), -1)) : true;
+    // return $input && $input !== PHP_EOL &&
+    //     preg_match('~^(?:\s+)?(?:module|abstract|final|class|func|if|else|elseif|for)~', $input)
+    //         ? (C_COLON === substr(chop($input), -1)) : true;
+    if ($input && $input !== C_EOL) {
+        $input = chop($input);
+        // check descriptors
+        if (preg_match('~^(?:\s+)?(?:module|abstract|final|class|fun|if|else|elseif|for).*(:)$~', $input)) {
+            return true;
+        }
+        // check functions with return types
+        if (preg_match('~^(?:\s+)?(?:fun)\s+(?:.+)\s*(?::)\s*([a-z_]\w*)$~', $input, $matches)) {
+            return isValidID($matches[1]) && !isValidKeyword($matches[1]);
+        }
+    }
+    return true;
 }
 function isValidColonBody($input, array $inputArray, int $line) {
     if (!isset($inputArray[$line], $inputArray[$line - 1])) {

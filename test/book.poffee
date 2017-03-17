@@ -1,2 +1,2 @@
-func getBook(id): int
-    return 1
+for a, b in c:
+    // pass

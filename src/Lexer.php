@@ -30,13 +30,13 @@ function isValidExpression($input) {
 
 class Lexer extends LexerBase
 {
-    private static $eol = PHP_EOL,
+    protected static $eol = PHP_EOL,
         $space = ' ',
         $indent = '    ',
         $indentLength = 4,
         $cache = []
     ;
-    private $file, $line;
+    protected $file, $line;
 
     public function __construct(string $indent = null)
     {
@@ -61,7 +61,7 @@ class Lexer extends LexerBase
             | (?:(const)\s+([a-z_]\w*)\s*(=)\s*(.+))    # const
             | (?:                                       # objects
                 (?:(abstract|final)\s*)?                # descriptor
-                (object|interface|trait)\s+([a-z_]\w*)  # class, interface, trait
+                (class|interface|trait)\s+([a-z_]\w*)  # class, interface, trait
                 (?:\s*(>)\s+([a-z_]\w*))?               # extends
                 (?:\s*(>>)\s+([a-z_](?:[\w,\s]*)))?     # implements
               (:))
@@ -93,14 +93,16 @@ class Lexer extends LexerBase
                 (?:\s*([a-z_]\w*))?                     # return type
               )
             | (?:(^\s+)?                                # function
+                (?:([a-z_]\w*)\s*(=)\s*)?               # anon name
                 (?:(fun)
-                    (?:\s+([a-z_]\w*))
-                    (?:\s*(\(.*\)))                     # arguments
-                    (:)                                 # colon
-                    (?:\s*([a-z_]\w*))?                 # return type
+                   (?:\s+([a-z_]\w*))?                  # real name
+                   (?:\s*(\(.*\)))                      # arguments
+                   (:)                                  # colon
+                   (?:\s*([a-z_]\w*))?                  # return type
                 )
               )
-            | (?:(^\s+)?(return)\s*(.*))                 # return
+            | (?:(^\s+)?(?:(if|elseif|for)\s+(.*)|(else))\s*(:)) # if, else, elseif, for
+            | (?:(^\s+)?(return)\s*(.*))                # return
             #| (?:(^\s+)?([a-z_]\w*)\s*(=)\s*(.+))       # assign
         )~ix';
         $matches = $lexer->getMatches($pattern, $input);
@@ -205,28 +207,39 @@ class Lexer extends LexerBase
                             $t->type = T_PROTECTED;
                         } elseif ($t->value[0] === '(') {
                             $t->type = T_FUN_ARGS_EXPR;
-                            $t->prev->type = T_FUN_ID;
+                            if ($t->prev->prev->type === T_ASSIGN) {
+                                $token->type = T_FUN_ANON; // fix token type
+                            } else {
+                                $t->prev->type = T_FUN_ID;
+                            }
                         } elseif (isValidID($t->value)) {
                             $t->type = T_FUN_RET_TYPE;
                         }
                     }
+                } elseif ($tokenType === T_IF || $tokenType === T_ELSE_IF || $tokenType === T_FOR) {
+                    $next->type = T_EXPR;
                 } elseif ($tokenType === T_RETURN) {
                     if (!$next->type) {
                         $next->type = T_RETURN_EXPR;
                     }
+                } elseif (!$tokenType) {
+                    if ($next) {
+                        if ($next->type === T_ASSIGN) {
+                            $token->type = T_VAR_ID;
+                        }
+                    }
+                    // if ($nextType === T_ASSIGN) {
+                    //     $tokenType = T_VAR_ID;
+                    // // } elseif ($expression = isValidExpression($tokenValue)) {
+                    // //     $tokenType = getTokenTypeFromConst($expression['type'].'_expr');
+                    // //     if ($tokenType) {
+                    // //         $token->children = $this->generateTokens(array_slice($expression, 2));
+                    // //     }
+                    // } elseif ($prevType === T_ASSIGN) {
+                    //     $tokenType = T_EXPR;
+                    // }
                 }
-                // } elseif (!$tokenType) { // en son
-                //     if ($nextType === T_ASSIGN) {
-                //         $tokenType = T_VAR_ID;
-                //     // } elseif ($expression = isValidExpression($tokenValue)) {
-                //     //     $tokenType = getTokenTypeFromConst($expression['type'].'_expr');
-                //     //     if ($tokenType) {
-                //     //         $token->children = $this->generateTokens(array_slice($expression, 2));
-                //     //     }
-                //     } elseif ($prevType === T_ASSIGN) {
-                //         $tokenType = T_EXPR;
-                //     }
-                // }
+
 
                 // if no type error?
             }
@@ -258,7 +271,7 @@ class Lexer extends LexerBase
             case 'use': return T_USE;
             case 'abstract': return T_ABSTRACT;
             case 'final': return T_FINAL;
-            case 'object': case 'interface': case 'trait': return T_OBJECT;
+            case 'class': case 'interface': case 'trait': return T_OBJECT;
             case 'const': return T_CONST;
             case 'var': return T_VAR;
             case 'fun': return T_FUN;
@@ -270,8 +283,8 @@ class Lexer extends LexerBase
 
             case 'null': return T_NULL;
             case 'true': case 'false': return T_BOOL;
+            case 'if': return T_IF; case 'else': return T_ELSE; case 'elseif': return T_ELSE_IF;
             case 'for': return T_FOR;
-            // case 'while': return T_WHILE; // for'la olur bu da belki
 
             case 'die': case 'echo': case 'empty': case 'eval': case 'exit': case 'include': case 'include_once': case 'isset': case 'list': case 'print': case 'require': case 'require_once': case 'unset': case '__halt_compiler':
                 return T_FUN_ID;

@@ -1,9 +1,27 @@
 [
     {
-        "value": "func getBook(id): int\n",
-        "type": null,
+        "value": "for",
+        "type": "T_FOR",
         "line": 1,
         "index": 0
+    },
+    {
+        "value": "a, b in c",
+        "type": "T_EXPR",
+        "line": 1,
+        "index": 1
+    },
+    {
+        "value": ":",
+        "type": "T_COLON",
+        "line": 1,
+        "index": 2
+    },
+    {
+        "value": "\n",
+        "type": "T_EOL",
+        "line": 1,
+        "index": 3
     },
     {
         "value": "    ",
@@ -12,14 +30,14 @@
         "index": 0
     },
     {
-        "value": "return",
-        "type": "T_RETURN",
+        "value": "\/\/",
+        "type": "T_COMMENT",
         "line": 2,
         "index": 1
     },
     {
-        "value": "1",
-        "type": "T_NUMBER",
+        "value": "pass",
+        "type": "T_COMMENT_CONTENT",
         "line": 2,
         "index": 2
     },
