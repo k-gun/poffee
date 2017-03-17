@@ -78,6 +78,7 @@ const T_FUN_RET_TYPE = 'T_FUN_RET_TYPE';
 
 const T_PHP_TAG_OPEN = 'T_PHP_TAG_OPEN', T_PHP_TAG_CLOSE = 'T_PHP_TAG_CLOSE';
 
+const C_EOL = PHP_EOL;
 const C_ASSIGN = '=';
 const C_COLON = ':';
 const C_EXTENDS = '>';
@@ -230,11 +231,11 @@ function isValidID($input) {
 }
 function isValidColon($input) {
     return $input && $input !== PHP_EOL &&
-        preg_match('~^(?:\s+)?(?:module|abstract|final|object|method|func|if|else|elseif|for|while)~', $input)
+        preg_match('~^(?:\s+)?(?:module|abstract|final|object|if|else|elseif|for|while)~', $input)
             ? (C_COLON === substr(chop($input), -1)) : true;
 }
 function isValidColonBody($input, array $inputArray, int $line) {
-    if (!isset($inputArray[$line - 1])) {
+    if (!isset($inputArray[$line], $inputArray[$line - 1])) {
         return true;
     }
     if (C_COLON === substr(chop($input), -1)) {

@@ -1,38 +1,32 @@
 [
     {
-        "value": "fun",
-        "type": "T_FUN",
+        "value": "func getBook(id): int\n",
+        "type": null,
         "line": 1,
         "index": 0
     },
     {
-        "value": "getBook",
-        "type": "T_FUN_ID",
-        "line": 1,
-        "index": 1
-    },
-    {
-        "value": "(id)",
-        "type": "T_FUN_ARGS_EXPR",
-        "line": 1,
-        "index": 2
-    },
-    {
-        "value": ":",
-        "type": "T_COLON",
-        "line": 1,
-        "index": 3
+        "value": "    ",
+        "type": "T_INDENT",
+        "line": 2,
+        "index": 0
     },
     {
         "value": "return",
         "type": "T_RETURN",
-        "line": 1,
-        "index": 4
+        "line": 2,
+        "index": 1
     },
     {
-        "value": " 1\n",
-        "type": "T_RETURN_EXPR",
-        "line": 1,
-        "index": 5
+        "value": "1",
+        "type": "T_NUMBER",
+        "line": 2,
+        "index": 2
+    },
+    {
+        "value": "\n",
+        "type": "T_EOL",
+        "line": 2,
+        "index": 3
     }
 ]

@@ -197,7 +197,7 @@ class Lexer extends LexerBase
                         }
                     }
                 } elseif ($tokenType === T_FUN) {
-                    while (($t = $tokens->next()) && $t->value !== C_COLON) {
+                    while (($t = $tokens->next()) && $t->value !== C_EOL) {
                         if ($t->type) continue;
                         if ($t->value === C_PRIVATE) {
                             $t->type = T_PRIVATE;
@@ -206,6 +206,8 @@ class Lexer extends LexerBase
                         } elseif ($t->value[0] === '(') {
                             $t->type = T_FUN_ARGS_EXPR;
                             $t->prev->type = T_FUN_ID;
+                        } elseif (isValidID($t->value)) {
+                            $t->type = T_FUN_RET_TYPE;
                         }
                     }
                 } elseif ($tokenType === T_RETURN) {

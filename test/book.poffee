@@ -1,1 +1,2 @@
-fun getBook(id): return 1 <<< sytax error!!
+func getBook(id): int
+    return 1
