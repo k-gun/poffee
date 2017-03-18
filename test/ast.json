@@ -1,44 +1,32 @@
 [
     {
-        "value": "if",
-        "type": "T_IF",
+        "value": "var",
+        "type": "T_VAR",
         "line": 1,
         "index": 0
     },
     {
-        "value": "not isset(this.table, this.tablePrimary)",
-        "type": "T_EXPR",
+        "value": "a",
+        "type": "T_VAR_EXPR",
         "line": 1,
         "index": 1
     },
     {
-        "value": ":",
-        "type": "T_COLON",
+        "value": "=",
+        "type": "T_ASSIGN",
         "line": 1,
         "index": 2
+    },
+    {
+        "value": "1, b = 2",
+        "type": "T_VAR_EXPR",
+        "line": 1,
+        "index": 3
     },
     {
         "value": "\n",
         "type": "T_EOL",
         "line": 1,
-        "index": 3
-    },
-    {
-        "value": "    throw new InvalidValueException(\n",
-        "type": null,
-        "line": 2,
-        "index": 0
-    },
-    {
-        "value": "        \"You need to specify both 'table' and 'tablePrimary' properties!\"\n",
-        "type": null,
-        "line": 3,
-        "index": 0
-    },
-    {
-        "value": "    )\n",
-        "type": null,
-        "line": 4,
-        "index": 0
+        "index": 4
     }
 ]

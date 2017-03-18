@@ -1,4 +1,6 @@
-<?php autoload();
+<?php
+include '_inc.php';
+autoload();
 
 $parser = new Poffee\Parser();
 $parser->parse(__dir__.'/book.poffee');
@@ -36,45 +38,3 @@ $parser->parse(__dir__.'/book.poffee');
 // ~xi';
 // $m = preg_split($p, $s, -1, $f);
 // prd($m);
-
-
-
-
-
-
-
-
-
-function _p($arg) {
-    if ($arg === null) $arg = 'NULL';
-    elseif ($arg === true) $arg = 'TRUE';
-    elseif ($arg === false) $arg = 'FALSE';
-    return sprintf("%s\n", preg_replace(
-        ['~\[(\w+):.*?\:private\]~', '~Object\s*\*RECURSION\*~'],
-        ['[\\1:private]', '{...}'],
-        print_r($arg, true)
-    ));
-}
-function pre(...$args) {
-    $print = '';
-    foreach ($args as $arg) {
-        $print .= _p($arg);
-    }
-    print $print;
-}
-function prd($arg) {
-    print _p($arg); die;
-}
-function prf($arg, $f = 'ast.json') {
-    // file_put_contents($f, _p($arg));
-    file_put_contents($f, json_encode($arg, JSON_PRETTY_PRINT));
-}
-
-function autoload() {
-    return spl_autoload_register(function($objectName) {
-        $objectName = str_replace('\\', '/', substr($objectName, 7));
-        $objectFile = sprintf('../src/%s.php', $objectName);
-        // pre($objectName, $objectFile); //die;
-        require $objectFile;
-    });
-}

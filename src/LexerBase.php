@@ -7,9 +7,11 @@ const T_INDENT = 'T_INDENT'; // -2;
 const T_SPACE = 'T_SPACE'; // -3;
 
 const T_DECLARE = 'T_DECLARE';
+const T_MODULE = 'T_MODULE';
 const T_USE = 'T_USE';
 const T_CLASS = 'T_CLASS';
-const T_MODULE = 'T_MODULE';
+const T_INTERFACE = 'T_INTERFACE';
+const T_TRAIT = 'T_TRAIT';
 
 const T_OPR = 'T_OPR';
 const T_ASSIGN = 'T_ASSIGN';
@@ -67,6 +69,7 @@ const T_PROPERTY_EXPR = 'T_PROPERTY_EXPR';
 const T_ARRAY_EXPR = 'T_ARRAY_EXPR';
 const T_FUN_ARGS_EXPR = 'T_FUN_ARGS_EXPR';
 const T_RETURN_EXPR = 'T_RETURN_EXPR';
+const T_VAR_EXPR = 'T_VAR_EXPR';
 
 const T_NULL = 'T_NULL';
 const T_STRING = 'T_STRING';
@@ -249,6 +252,7 @@ function isValidKeyword($input) {
     return in_array($input, KEYWORDS);
 }
 function isValidColon($input) {
+    // bunlari galiba tokenize den sonraya alicaz
     // return $input && $input !== PHP_EOL &&
     //     preg_match('~^(?:\s+)?(?:module|abstract|final|class|func|if|else|elseif|for)~', $input)
     //         ? (C_COLON === substr(chop($input), -1)) : true;

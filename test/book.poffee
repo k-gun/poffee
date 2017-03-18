@@ -1,4 +1,1 @@
-if not isset(this.table, this.tablePrimary):
-    throw new InvalidValueException(
-        "You need to specify both 'table' and 'tablePrimary' properties!"
-    )
+var a = 1, b = 2

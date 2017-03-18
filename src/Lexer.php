@@ -60,8 +60,9 @@ class Lexer extends LexerBase
             | (?:(use)\s+(.+))                          # use
             | (?:(const)\s+([a-z_]\w*)\s*(=)\s*(.+))    # const
             | (?:                                       # objects
-                (?:(abstract|final)\s*)?                # descriptor
-                (class|interface|trait)\s+([a-z_]\w*)  # class, interface, trait
+                (object)
+                (?:\s+(abstract|final)\s*)?             # descriptor
+                (?:\s+(class|interface|trait)\s+([a-z_]\w*))   # class, interface, trait
                 (?:\s*(>)\s+([a-z_]\w*))?               # extends
                 (?:\s*(>>)\s+([a-z_](?:[\w,\s]*)))?     # implements
               (:))
@@ -105,7 +106,8 @@ class Lexer extends LexerBase
                 \s+(.+)|(else))\s*(:))
             | (?:(^\s+)?(require|include(?:_once)?)\s*(.*))                # require, include ..
             | (?:(^\s+)?(return)\s*(.*))                # return
-            #| (?:(^\s+)?([a-z_]\w*)\s*(=)\s*(.+))       # assign
+            | (?:(^\s+)?(var)\s+([a-z_]\w*)\s*(=)\s*(.+))       # assign
+            #| (?:(^\s+)?(.+))
         )~ix';
         $matches = $lexer->getMatches($pattern, $input);
         pre($matches);
@@ -167,15 +169,14 @@ class Lexer extends LexerBase
                 } elseif ($tokenType === T_USE) {
                     $next->type = T_EXPR;
                 } elseif ($tokenType === T_OBJECT) {
-                    $next->type = T_OBJECT_ID;
-                } elseif ($tokenType === T_OBJECT_ID) {
                     while (($t = $tokens->next()) && $t->value !== C_COLON) {
+                        if ($t->type) continue;
                         if ($t->value === C_EXTENDS) {
                             $t->type = T_EXTENDS;
                         } elseif ($t->value === C_IMPLEMENTS) {
                             $t->type = T_IMPLEMENTS;
                         } else {
-                            $t->type = T_OBJECT_ID; // class, interface or trait
+                            $t->type = T_OBJECT_ID;
                         }
                     }
                 } elseif ($tokenType === T_CONST) {
@@ -190,14 +191,18 @@ class Lexer extends LexerBase
                         }
                     }
                 } elseif ($tokenType === T_VAR) {
-                    while (($t = $tokens->next()) && $t->value !== C_ASSIGN) {
+                    while (($t = $tokens->next()) && $t->value !== C_EOL) {
+                        // pre($t->value);
                         if ($t->type) continue;
                         if ($t->value === C_PRIVATE) {
                             $t->type = T_PRIVATE;
                         } elseif ($t->value === C_PROTECTED) {
                             $t->type = T_PROTECTED;
+                        // } elseif (isValidID($t->value)) {
+                        //     $t->type = T_VAR_ID; // bunu kaldir, dogrudan var expr yap
                         } else {
-                            $t->type = T_VAR_ID;
+                            pre($t->value);
+                            $t->type = T_VAR_EXPR;
                         }
                     }
                 } elseif ($tokenType === T_FUN) {
@@ -277,7 +282,10 @@ class Lexer extends LexerBase
             case 'use': return T_USE;
             case 'abstract': return T_ABSTRACT;
             case 'final': return T_FINAL;
-            case 'class': case 'interface': case 'trait': return T_OBJECT;
+            case 'object': return T_OBJECT;
+            case 'class': return T_CLASS;
+            case 'interface': return T_INTERFACE;
+            case 'trait': return T_TRAIT;
             case 'const': return T_CONST;
             case 'var': return T_VAR;
             case 'fun': return T_FUN;
@@ -300,6 +308,7 @@ class Lexer extends LexerBase
             case 'isset': case 'list': case 'print': case 'unset': case '__halt_compiler': return T_FUN_ID;
 
             default:
+                // burasi sikintili "a" + "b" true verir
                 $fChar = $value[0]; $lChar = substr($value, -1);
                 if ($fChar === "'" && $lChar === "'") {
                     return T_STRING;
