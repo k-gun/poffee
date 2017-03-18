@@ -26,7 +26,7 @@ function isExpr($input) {
     $input = trim($input);
     if ($input and strlen($input) > 1) {
         if (isOprLike($input)) return true;
-        if (isStringExpr($input)) return false; // ?
+        // if (isStringExpr($input)) return false; // ?
     }
     return false;
 }
@@ -37,8 +37,11 @@ const RE_EXPR = '~(?:
     \s*(?:
         \s*([a-z_]\w*)
         \s*(?:
-           \s*((?:[!%.*/+-]+|ise?|not|and|or)?=(?:[&@]+)?)
-           \s*(?:\s*(?:
+            \s*(?:
+                  ((?:[-+!%.*/]+|and|or|ise?|not|ise?\s+not)?(=)([&@]+)?)
+                | ((?:[-+!%.*/]+|and|or|ise?|not|ise?\s+not|[&@]+))
+            )
+            \s*(?:\s*(?:
                  (\w+|[\'"]\w+[\'"])\s*
                | ([\'"].*[\'"]?)\s*
                | ([a-z_]\w*)?\s*(\(.*\))\s*
@@ -66,25 +69,10 @@ const RE_FUNCTION_EXPR = '~(?:
     )?
     \s*(\))
 )~ix';
-
-function parseCommaExpr2($input) {
-    $ret = [];
-    $i = $ip = $in = 0;
-    while ($i < strlen($input)) {
-        $c = $input[$i++];
-        // $cp = $input[$ip];
-        if ($c === '"') {
-            while (($cn = $input[$$i]) !== '"') {
-                pre($cn);
-            }
-        }
-        $ip = $i - 1; // prev index
-        $in = $i + 1; // next index
-    }
-    prr($i, $ip, $in);
-    return $ret;
-}
-prd(parseCommaExpr2('1, "2,"'));
+const RE_COMMA_EXPR = '~\(([^()]|(?R))+\)|\[[^\]]*\]|\'[^\'\\\]*\'|\"[^\"\\\]*\"|[^(),\s]*~';
+// $s ='1, (a*2), ["1", \'2\'], \'2,\', ".,.", ".\".", \'.\\\'.\', 111';
+// $s = '"1", 2';
+// prd(parseCommaExpr($s));
 
 $expr = '1';
 $expr = 'a = 1';
@@ -103,24 +91,27 @@ $expr = 'a = 1, b = "2", c = foo(3, "..")';
 // $expr = 'a = foo("1") + "1"';
 $expr = 'foo("1") + "1"';
 $expr = '("1") + "1"';
-$expr = '"1 " + ("1")';
-// $expr = 'foo("1")';
+$expr = '"1" + foo("1", a)';
+$expr = 'a = foo("1") + a';
+// prd(isStringExpr($expr));
 
 $tokens = parse($expr);
-foreach ($tokens as &$token) {
-    // prr($token[0], ":", isString($token[0]), ":", isStringExpr($token[0]));
-    if (isFunctionExpr($token[0])) {
-        pre("...");
-        $token['_'] = parseFunctionExpr($token[0]);
-    }
-}
+// foreach ($tokens as &$token) {
+//     if (isFunctionExpr($token[0])) {
+//         $tokens += parseFunctionExpr($token[0]);
+//     } elseif (isStringExpr($token[0])) {
+//         $tokens += parseStringExpr($token[0]);
+//     } elseif (isExpr($token[0])) {
+//         $tokens += parseExpr($token[0]);
+//     }
+// }
 pre($tokens);
 
 function parse($expr) {
     if (isFunctionExpr($expr)) {
-        prd($expr);
+        // return parseFunctionExpr($expr);
     } elseif (isStringExpr($expr)) {
-        return parseStringExpr($expr);
+        // return parseStringExpr($expr);
     } else {
         return parseExpr($expr);
     }
@@ -134,10 +125,18 @@ function parseStringExpr($expr) {
         PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_OFFSET_CAPTURE);
 }
 function parseFunctionExpr($expr) {
-    return preg_split(RE_FUNCTION_EXPR, $expr, -1,
-        PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_OFFSET_CAPTURE);
+    return parseCommaExpr($expr);
 }
 function parseCommaExpr($expr) {
-    return preg_split(RE_COMMA_EXPR, $expr, -1,
-        PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_OFFSET_CAPTURE);
+    $return = [];
+    if (preg_match_all(RE_COMMA_EXPR, $expr, $matches, PREG_OFFSET_CAPTURE)) {
+        foreach ($matches[0] as $match) {
+            if (!empty($match[0])) {
+                $return[] = $match;
+                $return[] = [',', $match[1] + strlen($match[0]) /* add index */];
+            }
+        }
+        array_pop($return);
+    }
+    return $return;
 }
