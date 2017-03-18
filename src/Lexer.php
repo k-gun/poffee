@@ -84,8 +84,8 @@ class Lexer extends LexerBase
             | (?:(^\s+)                                 # method
                 (?:(fun)
                     (?:\s+(@|@@))?                      # private, protected
-                    (?:\s*(final|static)?               # final, static
-                       \s*(static|final)?               # static, final
+                    (?:\s*(final|abstract|static)?      # final or abstract, static
+                       \s*(static|final|abstract)?      # static, final or abstract
                     )?
                        \s+([a-z_]\w*)                   # name
                     (?:\s*(\(.*\)))                     # arguments

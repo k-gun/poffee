@@ -18,7 +18,7 @@
         "index": 2
     },
     {
-        "value": "1, b = 2",
+        "value": "foo(a)",
         "type": "T_VAR_EXPR",
         "line": 1,
         "index": 3
