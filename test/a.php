@@ -1,8 +1,10 @@
 <?php
 include '_inc.php';
 
-function isIdExpr($c) {
-    return ($c >= 'a' && $c <= 'z') || ($c >= 'A' && $c <= 'Z') || ($c >= '0' && $c <= '9');
+function isLetter($c) { return ($c >= 'a' && $c <= 'z') || ($c >= 'A' && $c <= 'Z'); }
+function isNumber($c) { return ($c >= '0' && $c <= '9'); }
+function isId($c) {
+    return ($c === '_') || isLetter($c) || isNumber($c);
 }
 
 function parseBlockExpr($expr, $cStart, $cEnd) {
@@ -56,34 +58,58 @@ function parseBlockExpr($expr, $cStart, $cEnd) {
 function parseExpr($expr) {
     pre($expr);
     $stack = [];
-    $i = 0; $stack = [];
+    $i = 0; $stack = []; $buffer = ''; $depth = 0;
     while ('' !== ($c =@ $expr[$i++])) {
-        $buffer = '';
         switch ($c) {
-            case '"':
-                $buffer = $c;
-                while (($cs =@ $expr[$i++]) !== '' && ($cs !== '"' || $cs === '\\')) {
-                    $buffer .= $cs;
-                    if ($expr[$i - 1] === '\\') { // escape
-                        $buffer .= '\\';
+            // case '"':
+            // case "'":
+            //     $buffer = parseBlockExpr(substr($expr, $i-1), $c, $c)[0];
+            //     $i = $i + strlen($buffer) - 1;
+            //     break;
+            // case '[':
+            //     $buffer = parseBlockExpr(substr($expr, $i-1), '[', ']')[0];
+            //     $i = $i + strlen($buffer) - 1;
+            //     break;
+            // case '(':
+            //     $buffer = parseBlockExpr(substr($expr, $i-1), '(', ')')[0];
+            //     $i = $i + strlen($buffer) - 1;
+            //     break;
+            case ',':
+                if (!$depth) {
+                    if ($buffer !== '') {
+                        // $stack[] = $buffer;
+                        $buffer = '';
+                    }
+                    continue 2;
+                }
+                break;
+            case ' ':
+                if (!$depth) {
+                    continue 2;
+                }
+                break;
+            // case isId($c): // id leri yakalamiyor
+            //     pre($c);
+            //     $buffer = $c;
+            //     while (($cs =@ $expr[$i]) !== '' && isId($cs)) {
+            //         $buffer .= $cs;
+            //         $i++;
+            //     }
+            //     // prd($buffer);
+            //     break;
+            default:
+                if (isId($c)) {
+                    $buffer = $c;
+                    while (($cs =@ $expr[$i]) !== '' && isId($cs)) {
+                        $buffer .= $cs;
                         $i++;
                     }
-                }
-                $buffer .= $c;
-                break;
-            case ',':
-                $buffer = $c;
-                $i++;
-                break;
-            case '[':
-                $buffer = parseBlockExpr(substr($expr, $i-1), '[', ']')[0];
-                $i = $i + strlen($buffer) - 1;
-                break;
-            default:
-                $buffer = $c;
-                while (($cs =@ $expr[$i]) !== '' && isIdExpr($cs)) {
-                    $buffer .= $cs;
-                    $i++;
+                } elseif ($depth) {
+                    $depth--;
+                } else {
+                    $stack[] = $c;
+                    $buffer = '';
+                    continue 2;
                 }
         }
 
@@ -94,10 +120,13 @@ function parseExpr($expr) {
 
     return $stack;
 }
-$expr = "1, '2'";
-// $expr = '1, 2, [3,[4]], 10';
-// $expr = '[1,2,3,[4,"5",["aşkaşlka"]]], 1, "1111", foo("1", a)';
-// $expr = '[1,[2,["34"]],5]';
+$expr = "1, ' '";
+$expr = '1, " "';
+$expr = '(11,1,[3],10,[1,[2,[3]]])';
+$expr = '11, [2]';
+$expr = '1, 2, [3,[4]], 10';
+$expr = '1,2,[3,[4]],10';
+$expr = '1,[1,2,3,[4,"5",["aşkaşlka"]]], 1, "1111", foo("1", a)';
 // $expr = 'aaa, [1, [2, ["3, 1"]]], end';
 // $expr = '"1", 2, [1, [2, [3]]], 3';
 // $expr = '11, a, "c"';
