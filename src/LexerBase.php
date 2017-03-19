@@ -40,10 +40,12 @@ const T_VAR = 'T_VAR';
 const T_RETURN = 'T_RETURN';
 const T_IF = 'T_IF';
 const T_ELSE = 'T_ELSE';
-const T_ELSE_IF = 'T_ELSE_IF';
+const T_ELSEIF = 'T_ELSEIF';
 const T_FOR = 'T_FOR';
-const T_IS = 'T_IS', T_IS_NOT = 'T_IS_NOT';
-const T_ISE = 'T_ISE', T_ISE_NOT = 'T_ISE_NOT';
+const T_BREAK = 'T_BREAK', T_CONTINUE = 'T_CONTINUE';
+const T_IS = 'T_IS';
+const T_ISE = 'T_ISE';
+const T_NOT = 'T_NOT';
 
 const T_PRNT_BLOCK = 'T_PRNT_BLOCK';
 const T_OPEN_PRNT = 'T_OPEN_PRNT';
@@ -109,7 +111,23 @@ const KEYWORDS = ['__halt_compiler', 'abstract', 'and', 'array', 'as', 'break',
 ];
 
 abstract class LexerBase
-{}
+{
+    function toAst($tokens) {
+        $array = [];
+        foreach ($tokens as $i => &$token) {
+            unset($token->tokens);
+            // skip expressions, cos all should be parsed already
+            if ($token->type !== T_VAR_EXPR) {
+                $array[] = $token->toArray(true);
+            }
+            if ($token->children) {
+                $array = array_merge($array, $this->toAst($token->children));
+                unset($token->children);
+            }
+        }
+        return $array;
+    }
+}
 
 class Token
 {
@@ -143,13 +161,21 @@ class Token
     {
         return $this->tokens->get($this->index + 1);
     }
-    public function toArray()
+    public function remove()
     {
-        return get_object_vars($this);
+        $this->tokens->removeAt($this->index);
+    }
+    public function toArray(bool $clear = false)
+    {
+        $array = get_object_vars($this);
+        if ($clear) {
+            unset($array['tokens']);
+        }
+        return $array;
     }
 }
 
-class Tokens
+class Tokens implements \IteratorAggregate
 {
     private $tokens = [];
     private $tokensIndex = 0;
@@ -217,6 +243,22 @@ class Tokens
         return $this->get($this->tokensIndex - 1);
     }
 
+    public function remove(Token $token)
+    {
+        $i = 0;
+        while (isset($this->tokens[$i])) {
+            if ($this->tokens[$i] === $token) {
+                unset($this->tokens[$i]);
+                break;
+            }
+            $i++;
+        }
+    }
+    public function removeAt(int $i)
+    {
+        unset($this->tokens[$i]);
+    }
+
     public function tokensIndex()
     {
         return $this->tokensIndex;
@@ -238,19 +280,21 @@ class Tokens
     {
         return empty($this->tokens);
     }
-    public function toArray()
+    public function toArray(bool $clear = false)
     {
-        return array_filter($this->tokens); // array_filter?
+        $array = [];
+        foreach ($this->tokens as $token) {
+            $array[] = $token->toArray($clear);
+        }
+        return $array;
+    }
+    public function getIterator(): \ArrayIterator
+    {
+        return new \ArrayIterator($this->tokens);
     }
 }
 
 // cache these?
-function isValidID($input) {
-    return preg_match('~^(?:[a-z_]\w*)$~i', $input);
-}
-function isValidKeyword($input) {
-    return in_array($input, KEYWORDS);
-}
 function isValidColon($input) {
     // bunlari galiba tokenize den sonraya alicaz
     // return $input && $input !== PHP_EOL &&
@@ -264,7 +308,7 @@ function isValidColon($input) {
         }
         // check functions with return types
         if (preg_match('~^(?:\s+)?(?:fun)\s+(?:.+)\s*(?::)\s*([a-z_]\w*)$~', $input, $matches)) {
-            return isValidID($matches[1]) && !isValidKeyword($matches[1]);
+            return isId($matches[1]) && !isKeyword($matches[1]);
         }
     }
     return true;
@@ -281,4 +325,108 @@ function isValidColonBody($input, array $inputArray, int $line) {
             && '    ' === substr($nextLine, 0, 4); // bunu degistir sonra clas icine alinca fn'i, self::$indent'i kullan
     }
     return true;
+}
+
+function isId($input) { return !!preg_match('~^(?:[a-z_]\w*)$~i', $input); }
+function isKeyword($input) { return in_array($input, KEYWORDS); }
+function isNumber($input) { return is_numeric($input); }
+function isString($input) {
+    $split = preg_split('~(?:([\'"])\s*([,+]))~', $input)[0] ?? null;
+    if ($split) {
+        $fChr = $split[0]; $lChr = substr($split, -1);
+        return ($fChr === "'" && $lChr === "'") || ($fChr === '"' && $lChr === '"');
+    }
+}
+function isValue($input) { return isNumber($input) || isString($input); }
+function isExpr($input) { return !isValue($input) /* && ... */; }
+function isOpr($input) { return preg_match('~^(?:[\^\~<>!=%.&@*/+-]+|ise?|not|ise?\s+not|and|or)$~', $input); }
+function isLetterChr($chr) { return ($chr >= 'a' && $chr <= 'z') || ($chr >= 'A' && $chr <= 'Z'); }
+function isNumberChr($chr) { return ($chr >= '0' && $chr <= '9'); }
+function isIdChr($chr) { return ($chr === '_') || isLetterChr($chr) || isNumberChr($chr); }
+
+function parseExpr($expr) {
+    $stack = [];
+    $i = 0; $stack = []; $depth = 0; $buffer = null; $bufferIndex = null;
+    while ('' !== ($chr =@ $expr[$i++])) {
+        switch ($chr) {
+            case '"':
+            case "'":
+                $buffer = $chr;
+                $bufferIndex = $i - 1;
+                if ($chr === '"') {
+                    while (($c =@ $expr[$i++]) !== '' && ($c !== '"' || $c === '\\')) {
+                        $buffer .= $c;
+                        if ($expr[$i - 1] === '\\') { // escape
+                            $buffer .= '\\';
+                            $i++;
+                        }
+                    }
+                } else {
+                    while (($c =@ $expr[$i++]) !== '' && ($c !== "'" || $c === '\\')) {
+                        $buffer .= $c;
+                        if ($expr[$i - 1] === '\\') { // escape
+                            $buffer .= '\\';
+                            $i++;
+                        }
+                    }
+                }
+                $buffer .= $chr;
+                break;
+            case isIdChr($chr):
+                $buffer = $chr;
+                $bufferIndex = $i - 1;
+                while (isIdChr($c =@ $expr[$i])) {
+                    $buffer .= $c;
+                    $i++;
+                }
+                break;
+            case '?': // ?: and ?? expressions
+                $buffer = $chr;
+                $bufferIndex = $i - 1;
+                if ($expr[$i] === ':' || $expr[$i] === '?') {
+                    $buffer .= $expr[$i];
+                    $i++;
+                }
+                break;
+            case '*': // **
+                $buffer = $chr;
+                $bufferIndex = $i - 1;
+                if ($expr[$i] === '*') {
+                    $buffer .= $expr[$i];
+                    $i++;
+                }
+                break;
+            case '!': // operators
+                $buffer = $chr;
+                $bufferIndex = $i - 1;
+                if (isOpr($expr[$i])) { // != etc
+                    $buffer .= $expr[$i];
+                    $i++;
+                    if (isOpr($expr[$i])) { // !== etc
+                        $buffer .= $expr[$i];
+                        $i++;
+                    }
+                }
+                break;
+            case ' ':
+                if (!$depth) {
+                    continue 2;
+                }
+                break;
+            default:
+                if ($depth) {
+                    $depth--;
+                } else {
+                    $stack[] = [$chr, $i - 1];
+                    $buffer = null;
+                    continue 2;
+                }
+        }
+
+        if ($buffer !== null) {
+            $stack[] = [$buffer, $bufferIndex];
+        }
+    }
+
+    return $stack;
 }

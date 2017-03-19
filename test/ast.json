@@ -7,7 +7,7 @@
     },
     {
         "value": "a",
-        "type": "T_VAR_EXPR",
+        "type": "T_VAR_ID",
         "line": 1,
         "index": 1
     },
@@ -18,10 +18,22 @@
         "index": 2
     },
     {
-        "value": "foo(a)",
-        "type": "T_VAR_EXPR",
+        "value": "1",
+        "type": "T_NUMBER",
         "line": 1,
-        "index": 3
+        "index": 0
+    },
+    {
+        "value": "**",
+        "type": "T_OPR",
+        "line": 1,
+        "index": 1
+    },
+    {
+        "value": "1",
+        "type": "T_NUMBER",
+        "line": 1,
+        "index": 2
     },
     {
         "value": "\n",

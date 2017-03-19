@@ -106,7 +106,7 @@ class Lexer extends LexerBase
                 \s+(.+)|(else))\s*(:))
             | (?:(^\s+)?(require|include(?:_once)?)\s*(.*))                # require, include ..
             | (?:(^\s+)?(return)\s*(.*))                # return
-            | (?:(^\s+)?(var)\s+([a-z_]\w*)\s*(=)\s*(.+))       # assign
+            | (?:(^\s+)?(?:(var)\s+)?([a-z_]\w*)\s*(=)\s*(.+))       # assign
             #| (?:(^\s+)?(.+))
         )~ix';
         $matches = $lexer->getMatches($pattern, $input);
@@ -192,17 +192,18 @@ class Lexer extends LexerBase
                     }
                 } elseif ($tokenType === T_VAR) {
                     while (($t = $tokens->next()) && $t->value !== C_EOL) {
-                        // pre($t->value);
                         if ($t->type) continue;
                         if ($t->value === C_PRIVATE) {
                             $t->type = T_PRIVATE;
                         } elseif ($t->value === C_PROTECTED) {
                             $t->type = T_PROTECTED;
-                        // } elseif (isValidID($t->value)) {
-                        //     $t->type = T_VAR_ID; // bunu kaldir, dogrudan var expr yap
-                        } else {
-                            pre($t->value);
-                            $t->type = T_VAR_EXPR;
+                        } elseif ($t->next->type === T_ASSIGN) {
+                            $t->type = T_VAR_ID;
+                        } elseif ($t->prev->type === T_ASSIGN) {
+                            if (isExpr($t->value)) {
+                                $t->type = T_VAR_EXPR;
+                                $t->children = $this->generateTokens(parseExpr($t->value));
+                            }
                         }
                     }
                 } elseif ($tokenType === T_FUN) {
@@ -219,39 +220,46 @@ class Lexer extends LexerBase
                             } else {
                                 $t->prev->type = T_FUN_ID;
                             }
-                        } elseif (isValidID($t->value)) {
+                        } elseif (isId($t->value)) {
                             $t->type = T_FUN_RET_TYPE;
                         }
                     }
                 } elseif (
-                    $tokenType === T_IF || $tokenType === T_ELSE_IF ||
-                    $tokenType === T_IS || $tokenType === T_IS_NOT ||
-                    $tokenType === T_ISE || $tokenType === T_ISE_NOT ||
-                    $tokenType === T_FOR
+                    $tokenType === T_FOR ||
+                    $tokenType === T_IF  || $tokenType === T_ELSEIF ||
+                    $tokenType === T_IS  || $tokenType === T_ISE || $tokenType === T_NOT
                 ) {
-                    $next->type = T_EXPR;
+                    if (!$next->type) {
+                        $next->type = T_EXPR;
+                    }
                 } elseif ($tokenType === T_RETURN) {
                     if (!$next->type) {
                         $next->type = T_RETURN_EXPR;
                     }
+                } elseif ($tokenType === T_OPR || $tokenType === T_ASSIGN) {
+                    if ($prev && isId($prev->value)) {
+                        $prev->type = T_VAR_ID;
+                    }
+                    if ($next && isExpr($next->value)) {
+                        $next->type = T_VAR_EXPR;
+                    }
+                } elseif ($tokenType === T_VAR_EXPR) {
+                    if (isExpr($tokenValue)) {
+                        $token->children = $this->generateTokens(parseExpr($token->value));
+                    }
                 } elseif (!$tokenType) {
-                    if ($next) {
+                    if ($prev) {
+                        // pre($prev);
+                    } elseif ($next) {
                         if ($next->type === T_ASSIGN) {
+                            $token->type = T_VAR_ID;
+                        } elseif ($next->type === T_OPEN_PRNT && isId($tokenValue)) {
+                            $token->type = T_FUN_ID;
+                        } elseif (isId($tokenValue)) {
                             $token->type = T_VAR_ID;
                         }
                     }
-                    // if ($nextType === T_ASSIGN) {
-                    //     $tokenType = T_VAR_ID;
-                    // // } elseif ($expression = isValidExpression($tokenValue)) {
-                    // //     $tokenType = getTokenTypeFromConst($expression['type'].'_expr');
-                    // //     if ($tokenType) {
-                    // //         $token->children = $this->generateTokens(array_slice($expression, 2));
-                    // //     }
-                    // } elseif ($prevType === T_ASSIGN) {
-                    //     $tokenType = T_EXPR;
-                    // }
                 }
-
                 // if no type error?
             }
         }
@@ -297,10 +305,12 @@ class Lexer extends LexerBase
 
             case 'null': return T_NULL;
             case 'true': case 'false': return T_BOOL;
-            case 'if': return T_IF; case 'else': return T_ELSE; case 'elseif': return T_ELSE_IF;
+            case 'if': return T_IF; case 'else': return T_ELSE; case 'elseif': return T_ELSEIF;
             case 'for': return T_FOR; case 'in': return T_IN;
-            case 'is': return T_IS; case 'ise': return T_ISE;
-            case 'is not': return T_IS_NOT; case 'ise not': return T_ISE_NOT;
+            case 'break': return T_BREAK; case 'continue': return T_CONTINUE;
+            case 'is': return T_IS;
+            case 'ise': return T_ISE;
+            case 'not': return T_NOT;
             case 'require': return T_REQUIRE; case 'require_once': return T_REQUIRE_ONCE;
             case 'include': return T_INCLUDE; case 'include_once': return T_INCLUDE_ONCE;
 
@@ -308,24 +318,21 @@ class Lexer extends LexerBase
             case 'isset': case 'list': case 'print': case 'unset': case '__halt_compiler': return T_FUN_ID;
 
             default:
-                // burasi sikintili "a" + "b" true verir
-                $fChar = $value[0]; $lChar = substr($value, -1);
-                if ($fChar === "'" && $lChar === "'") {
+                if (isString($value)) {
                     return T_STRING;
                 }
-                if ($fChar === '"' && $lChar === '"') {
-                    return T_STRING;
-                }
-                if ($fChar === '[' && $lChar === ']') {
+                $fChr = $value[0]; $lChr = substr($value, -1);
+                // burasi sikintili gibi, bakilacak
+                if ($fChr === '[' && $lChr === ']') {
                     return T_ARRAY_EXPR;
                 }
-                if ($fChar === '(' && $lChar === ')') {
+                if ($fChr === '(' && $lChr === ')') {
                     // return T_EXPR; ?? // yukarda isValidExpression sorgusunu engelliyor
                 }
                 if (is_numeric($value)) {
                     return T_NUMBER;
                 }
-                if (preg_match(RE_OPR, $value)) {
+                if (isOpr($value)) {
                     return T_OPR;
                 }
         }

@@ -13,19 +13,21 @@ class Parser
     public function parse($file)
     {
         $lines = file($file);
-        $tokens = [];
+        $array = [];
         foreach ($lines as $i => $line) {
-            $tokens = array_merge($tokens, $this->lexer->scan($file, $i + 1, $line, $lines)->toArray());
+            $tokens = $this->lexer->scan($file, $i + 1, $line, $lines);
+            $tokens = $this->lexer->toAst($tokens);
+            // $array = array_merge($array, $tokens->toArray());
+            $array = array_merge($array, $tokens);
         }
-        $tokens = clear($tokens);
-        prf($tokens);
+        // $array = clear($array);
+        prf($array);
     }
 }
 
 // @tmp?
-function clear($tokens) { //return $tokens;
+function clear($tokens) {
     foreach ($tokens as &$token) {
-        // $token->tokens = 'Poffee\Tokens {...}';
         unset($token->tokens);
         if ($token->children) {
             $token->children = clear($token->children->toArray());
