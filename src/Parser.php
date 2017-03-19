@@ -10,27 +10,31 @@ class Parser
         $this->lexer = new Lexer();
     }
 
-    public function parse($file)
+    public function parse(FileReader $reader)
     {
-        $lines = file($file);
-        $array = [];
-        foreach ($lines as $i => $line) {
-            $tokens = $this->lexer->scan($file, $i + 1, $line, $lines);
-            $tokens = $this->lexer->toAst($tokens);
-            $array = array_merge($array, $tokens);
+        $file = $reader->getFile();
+        if (!$reader->read()) {
+            throw new \Exception("Could not read file: {$file}!");
         }
-        // $array = clear($array);
-        prf($array);
+
+        $tokens = [];
+        foreach (($lines = $reader->getLines()) as $i => $line) {
+            $scan = $this->lexer->scan($file, $i + 1, $line, $lines);
+            $scan = $this->lexer->toAst($scan);
+            $tokens = array_merge($tokens, $scan);
+        }
+
+        return $tokens;
     }
 }
 
 // @tmp?
-function clear($tokens) {
-    foreach ($tokens as &$token) {
-        unset($token->tokens);
-        if ($token->children) {
-            $token->children = clear($token->children->toArray());
-        }
-    }
-    return $tokens;
-}
+// function clear($tokens) {
+//     foreach ($tokens as &$token) {
+//         unset($token->tokens);
+//         if ($token->children) {
+//             $token->children = clear($token->children->toArray());
+//         }
+//     }
+//     return $tokens;
+// }
