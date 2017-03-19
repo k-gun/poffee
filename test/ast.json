@@ -1,44 +1,32 @@
 [
     {
-        "value": "var",
-        "type": "T_VAR",
-        "line": 1,
-        "index": 0
-    },
-    {
         "value": "a",
         "type": "T_VAR_ID",
         "line": 1,
-        "index": 1
+        "index": 0
     },
     {
         "value": "=",
         "type": "T_ASSIGN",
         "line": 1,
-        "index": 2
+        "index": 1
     },
     {
-        "value": "1",
-        "type": "T_NUMBER",
+        "value": "!",
+        "type": "T_OPR",
         "line": 1,
         "index": 0
     },
     {
-        "value": "**",
-        "type": "T_OPR",
+        "value": "a",
+        "type": null,
         "line": 1,
         "index": 1
-    },
-    {
-        "value": "1",
-        "type": "T_NUMBER",
-        "line": 1,
-        "index": 2
     },
     {
         "value": "\n",
         "type": "T_EOL",
         "line": 1,
-        "index": 4
+        "index": 3
     }
 ]

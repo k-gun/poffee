@@ -17,7 +17,6 @@ class Parser
         foreach ($lines as $i => $line) {
             $tokens = $this->lexer->scan($file, $i + 1, $line, $lines);
             $tokens = $this->lexer->toAst($tokens);
-            // $array = array_merge($array, $tokens->toArray());
             $array = array_merge($array, $tokens);
         }
         // $array = clear($array);
