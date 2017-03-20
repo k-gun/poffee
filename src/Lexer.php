@@ -117,23 +117,22 @@ class Lexer extends LexerBase
             if ($value === self::$space) continue; // ?
             $type = null;
             $length = strlen($value);
-            $token  = [];
             if ($value !== self::$eol) {
                 if (ctype_space($value)) {
                     if ($length < self::$indentLength or $length % self::$indentLength !== 0) {
                         throw new \Exception(sprintf('Indent error in %s line %s!', $this->file, $this->line));
                     }
                     $type = T_INDENT;
-                    // $token['size'] = $length; // / self::$indentLength;
                 } elseif (($tokens[$i - 1]['type'] ?? '') === T_COMMENT) { // skip comments
                     $type = T_COMMENT_CONTENT;
                 }
             }
             if (!$type) $type = $this->getType($value);
             // $start = $match[1]; $end = $start + $length;
-            $token += ['value' => $value, 'type' => $type, 'line' => $this->line,
-                // 'length' => $length, 'start' => $start, 'end' => $end, 'children' => null
+            $token = ['value' => $value, 'type' => $type, // 'line' => $this->line,
+                // 'length' => $length, 'start' => $start, 'end' => $end, // 'children' => null
             ];
+            // if ($type === T_INDENT) $token['size'] = $length / self::$indentLength;
             $tokens[] = $token;
         }
         $tokens = new TokenCollection($tokens);
