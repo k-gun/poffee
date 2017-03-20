@@ -48,9 +48,6 @@ class Lexer extends LexerBase
 
     public function scan($file, $line, $input, $inputArray = null)
     {
-        if (!isValidColon($input)) {throw new \Exception(sprintf('Sytax error in %s line %s, expecting ":" for the end of line!', $file, $line));}
-        if (!isValidColonBody($input, $inputArray, $line)) {throw new \Exception(sprintf('Sytax error in %s line %s, expecting a proper colon body after colon-ending line!', $file, $line));}
-
         $this->file = $file;
         $this->line = $line;
         $pattern = '~(?:
