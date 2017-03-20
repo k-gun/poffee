@@ -9,8 +9,8 @@ final class Lexer
     const T_NONE                = 'T_NONE';
     const T_STRING              = 'T_STRING';
     const T_NUMBER              = 'T_NUMBER';
-    const T_CLOSE_PARENTHESIS   = 'T_CLOSE_PARENTHESIS';
-    const T_OPEN_PARENTHESIS    = 'T_OPEN_PARENTHESIS';
+    const T_PAREN_CLOSETHESIS   = 'T_PAREN_CLOSETHESIS';
+    const T_PAREN_OPENTHESIS    = 'T_PAREN_OPENTHESIS';
     const T_COMMA               = 'T_COMMA';
     const T_COLON               = 'T_COLON';
     const T_SEMICOLON           = 'T_SEMICOLON';
@@ -107,8 +107,8 @@ final class Lexer
             switch ($value) {
                 case '.': return self::T_DOT;
                 case ',': return self::T_COMMA;
-                case '(': return self::T_OPEN_PARENTHESIS;
-                case ')': return self::T_CLOSE_PARENTHESIS;
+                case '(': return self::T_PAREN_OPENTHESIS;
+                case ')': return self::T_PAREN_CLOSETHESIS;
                 case '=': return self::T_EQUALS;
                 case '>': return self::T_GREATER_THAN;
                 case '<': return self::T_LOWER_THAN;

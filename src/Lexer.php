@@ -30,12 +30,7 @@ function isValidExpression($input) {
 
 class Lexer extends LexerBase
 {
-    protected static $eol = PHP_EOL,
-        $space = ' ',
-        $indent = '    ',
-        $indentLength = 4,
-        $cache = []
-    ;
+    protected static $eol = PHP_EOL, $space = ' ', $indent = '    ', $indentLength = 4, $cache = [];
     protected $file, $line;
 
     public function __construct(string $indent = null)
@@ -236,7 +231,7 @@ class Lexer extends LexerBase
                             if ($token->value === C_INC || $token->value === C_DEC) {
                                 $next->type = T_VAR_ID;
                             } elseif (isId($next->value)) {
-                                if ($next->next && $next->next->type === T_OPEN_PAREN) {
+                                if ($next->next && $next->next->type === T_PAREN_OPEN) {
                                     $next->type = T_FUN_ID;
                                 } else {
                                     $next->type = T_VAR_ID;
@@ -269,7 +264,7 @@ class Lexer extends LexerBase
                                 // pre($token->value);
                                 if ($next->type === T_ASSIGN) {
                                     $token->type = T_VAR_ID;
-                                } elseif ($next->type === T_OPEN_PAREN && isId($token->value)) {
+                                } elseif ($next->type === T_PAREN_OPEN && isId($token->value)) {
                                     $token->type = T_FUN_ID;
                                 } elseif (isId($token->value)) {
                                     $token->type = T_VAR_ID;
@@ -304,10 +299,10 @@ class Lexer extends LexerBase
             case ',':           return T_COMMA;
             case '?':           return T_QUESTION;
             case '//':          return T_COMMENT;
-            case '(':           return T_OPEN_PAREN;
-            case ')':           return T_CLOSE_PAREN;
-            case '[':           return T_OPEN_BRACK;
-            case ']':           return T_CLOSE_BRACK;
+            case '(':           return T_PAREN_OPEN;
+            case ')':           return T_PAREN_CLOSE;
+            case '[':           return T_BRACK_OPEN;
+            case ']':           return T_BRACK_CLOSE;
 
             // bunlar icin getTokenTypeFromConst() kullan sonra
             case 'declare': return T_DECLARE;

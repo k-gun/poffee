@@ -52,10 +52,10 @@ const T_AND = 'T_AND';
 const T_OR = 'T_OR';
 const T_IN = 'T_IN';
 
-const T_OPEN_PAREN = 'T_OPEN_PAREN';
-const T_CLOSE_PAREN = 'T_CLOSE_PAREN';
-const T_OPEN_BRACK = 'T_OPEN_BRACK';
-const T_CLOSE_BRACK = 'T_CLOSE_BRACK';
+const T_PAREN_OPEN = 'T_PAREN_OPEN';
+const T_PAREN_CLOSE = 'T_PAREN_CLOSE';
+const T_BRACK_OPEN = 'T_BRACK_OPEN';
+const T_BRACK_CLOSE = 'T_BRACK_CLOSE';
 const T_PAREN_BLOCK = 'T_PAREN_BLOCK';
 const T_BRACK_BLOCK = 'T_BRACK_BLOCK';
 
