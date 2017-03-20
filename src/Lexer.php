@@ -42,11 +42,11 @@ class Lexer extends LexerBase
     }
 
     public function scan($file, $line, $input, $inputs = null)
-    {
+    {pre($input, strlen($input));
         $this->file = $file;
         $this->line = $line;
         $pattern = '~(?:
-              (?:(^\s+)?(?<![\'"])(//)\s*(.+))          # comment
+              (?:(^\s+)?(?<![\'"])(//)([^\r\n]*))          # comment
             | (?:(declare)\s+([\'"].+[\'"]))            # declare
             | (?:(module)\s+([a-z_]\w*)\s*(:))          # module (namespace)
             | (?:(use)\s+(.+))                          # use
@@ -115,20 +115,21 @@ class Lexer extends LexerBase
             // $value = is_array($match) ? $match[0] : $match;
             $value = $match[0];
             if ($value === self::$space) continue; // ?
-            $token  = [];
-            $indent = null;
+            $type = null;
             $length = strlen($value);
-            if ($value !== self::$eol && ctype_space($value)) {
-                if ($length < self::$indentLength or $length % self::$indentLength !== 0) {
-                    throw new \Exception(sprintf('Indent error in %s line %s!', $this->file, $this->line));
+            $token  = [];
+            if ($value !== self::$eol) {
+                if (ctype_space($value)) {
+                    if ($length < self::$indentLength or $length % self::$indentLength !== 0) {
+                        throw new \Exception(sprintf('Indent error in %s line %s!', $this->file, $this->line));
+                    }
+                    $type = T_INDENT;
+                    // $token['size'] = $length; // / self::$indentLength;
+                } elseif (($tokens[$i - 1]['type'] ?? '') === T_COMMENT) { // skip comments
+                    $type = T_COMMENT_CONTENT;
                 }
-                $type = T_INDENT;
-                // $token['size'] = $length; // / self::$indentLength;
-            } elseif (($tokens[$i - 1]['type'] ?? '') === T_COMMENT) { // skip comments
-                $type = T_COMMENT_CONTENT;
-            } else {
-                $type = $this->getType($value);
             }
+            if (!$type) $type = $this->getType($value);
             // $start = $match[1]; $end = $start + $length;
             $token += ['value' => $value, 'type' => $type, 'line' => $this->line,
                 // 'length' => $length, 'start' => $start, 'end' => $end, 'children' => null
