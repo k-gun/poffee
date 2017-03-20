@@ -57,6 +57,7 @@ function isString($input) {
         $fChr = $split[0]; $lChr = substr($split, -1);
         return ($fChr === "'" && $lChr === "'") || ($fChr === '"' && $lChr === '"');
     }
+    return false;
 }
 function isValue($input) { return isNumber($input) || isString($input); }
 function isExpr($input) { return !isId($input) && !isKeyword($input) && !isValue($input); }
@@ -65,6 +66,7 @@ function isLetterChr($chr) { return ($chr >= 'a' && $chr <= 'z') || ($chr >= 'A'
 function isNumberChr($chr) { return ($chr >= '0' && $chr <= '9'); }
 function isIdChr($chr) { return ($chr === '_') || isLetterChr($chr) || isNumberChr($chr); }
 
+// operator'lerin hepsi belirlenmeli, aksi halde var id veya diger id'leri atamak cok sikinti (if token.next.type = x meselesi)!!!
 function parseExpr($expr) {
     $next = function($i) use($expr) {
         return ($expr[$i + 1] ?? '');
@@ -192,5 +194,3 @@ function parseExpr($expr) {
 //     pre(parseExpr($expr));
 //     pre('...');
 // }
-
-// operator'lerin hepsi belirlenmeli, aksi halde var id veya diger id'leri atamak cok sikinti (if token.next.type = x meselesi)!!!
