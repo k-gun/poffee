@@ -36,7 +36,8 @@ abstract class LexerBase
         while ($token = $tokens->next()) {
             if ($token->type === T_COMMENT) {
                 $token->value = sprintf('// %s', trim($token->next->value));
-                $token->next->remove(); // drop comment content
+                // drop comment content
+                $token->next->tokens->remove($token->next);
             }
         }
         return $tokens;

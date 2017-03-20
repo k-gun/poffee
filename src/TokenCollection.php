@@ -73,13 +73,10 @@ class TokenCollection implements \IteratorAggregate
 
     public function remove(Token $token)
     {
-        $i = 0;
-        while (isset($this->tokens[$i])) {
-            if ($this->tokens[$i] === $token) {
-                unset($this->tokens[$i]);
-                break;
+        foreach ($this->tokens as $i => $token_) {
+            if ($token_ === $token) {
+                return $this->removeAt($i);
             }
-            $i++;
         }
     }
     public function removeAt(int $i)
