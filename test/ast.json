@@ -1,32 +1,6 @@
-[
-    {
-        "value": "a",
-        "type": "T_VAR_ID",
-        "line": 1,
-        "index": 0
-    },
-    {
-        "value": "=",
-        "type": "T_ASSIGN",
-        "line": 1,
-        "index": 1
-    },
-    {
-        "value": "@",
-        "type": "T_OPR",
-        "line": 1,
-        "index": 0
-    },
-    {
-        "value": "1",
-        "type": "T_NUMBER",
-        "line": 1,
-        "index": 1
-    },
-    {
-        "value": "\n",
-        "type": "T_EOL",
-        "line": 1,
-        "index": 3
-    }
-]
+{
+    "value": "\n",
+    "type": "T_EOL",
+    "line": 1,
+    "index": 3
+}

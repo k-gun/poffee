@@ -121,18 +121,20 @@ abstract class LexerBase
         // $tokens = $this->setFunIds($tokens); burdayim
         $array = [];
         foreach ($tokens as $i => $token) {
+            $array[$i] = $token->toArray(true);
             unset($token->tokens);
             if (!$token->type && isExpr($token->value)) {
                 $token->type = T_EXPR;
                 $token->children = $this->generateTokens(parseExpr($token->value));
                 if ($token->children) {
-                    $array = array_merge($array, $this->toAst($token->children));
-                    unset($token->children);
+                    $array[$i]['children'] = $this->toAst($token->children);
+                    // $array = array_merge($array, $this->toAst($token->children));
+                    // unset($token->children);
                 }
             }
             // skip expressions, cos all should be parsed above already
             if ($token->type !== T_EXPR) {
-                $array[] = $token->toArray(true);
+                $array = $token->toArray(true);
             }
         }
         return $array;
