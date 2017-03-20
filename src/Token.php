@@ -43,7 +43,7 @@ class Token
     {
         $array = get_object_vars($this);
         if ($clear) {
-            unset($array['tokens']);
+            unset($array['tokens'], $array['index']);
         }
         return $array;
     }

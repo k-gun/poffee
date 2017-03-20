@@ -1,59 +1,48 @@
 [
     {
         "value": "fun",
-        "type": "T_FUNCTION",
-        "index": 0
+        "type": "T_FUNCTION"
     },
     {
         "value": "foo",
-        "type": "T_FUNCTION_ID",
-        "index": 1
+        "type": "T_FUNCTION_ID"
     },
     {
         "value": "()",
         "type": "T_EXPR",
-        "index": 2,
         "children": [
             {
                 "value": "(",
-                "type": "T_PAREN_OPEN",
-                "index": 0
+                "type": "T_PAREN_OPEN"
             },
             {
                 "value": ")",
-                "type": "T_PAREN_CLOSE",
-                "index": 1
+                "type": "T_PAREN_CLOSE"
             }
         ]
     },
     {
         "value": ":",
-        "type": "T_COLON",
-        "index": 3
+        "type": "T_COLON"
     },
     {
         "value": "\n",
-        "type": "T_EOL",
-        "index": 4
+        "type": "T_EOL"
     },
     {
         "value": "    ",
-        "type": "T_INDENT",
-        "index": 0
+        "type": "T_INDENT"
     },
     {
         "value": "//",
-        "type": "T_COMMENT",
-        "index": 1
+        "type": "T_COMMENT"
     },
     {
         "value": "comment",
-        "type": "T_COMMENT_CONTENT",
-        "index": 2
+        "type": "T_COMMENT_CONTENT"
     },
     {
         "value": "\n",
-        "type": "T_EOL",
-        "index": 3
+        "type": "T_EOL"
     }
 ]
