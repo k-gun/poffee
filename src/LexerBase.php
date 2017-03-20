@@ -7,8 +7,8 @@ abstract class LexerBase
 {
     function toAst(TokenCollection $tokens) { //return $tokens->toArray();
         $tokens = $this->setObjectIds($tokens);
+        $tokens = $this->setFunIds($tokens);
         $tokens = $this->setAssignIds($tokens);
-        // $tokens = $this->setFunIds($tokens); burdayim
         $array = [];
         foreach ($tokens as $i => $token) {
             unset($token->tokens);
@@ -35,7 +35,7 @@ abstract class LexerBase
         while ($token = $tokens->next()) {
             if ($token->type === T_MODULE) {
                 $token->next->type = T_MODULE_ID;
-            } elseif ($token->type === T_CLASS or $token->type === T_INTERFACE or $token->type === T_TRAIT or $token->type === T_FUN) {
+            } elseif ($token->type === T_CLASS or $token->type === T_INTERFACE or $token->type === T_TRAIT) {
                 $token->next->type = T_OBJECT_ID;
             } elseif ($token->type === T_OBJECT_ID) {
                 $next = $tokens->next();
@@ -50,6 +50,15 @@ abstract class LexerBase
                     }
                     $next = $tokens->next();
                 }
+            }
+        }
+        return $tokens;
+    }
+    function setFunIds(TokenCollection $tokens) {
+        $tokens->reset();
+        while ($token = $tokens->next()) {
+            if ($token->type === T_FUN) {
+                $token->next->type = T_FUN_ID;
             }
         }
         return $tokens;
