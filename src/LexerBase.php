@@ -12,7 +12,7 @@ abstract class LexerBase
         foreach ($tokens as $i => $token) {
             $array[$i] = $token->toArray(true);
             unset($token->tokens);
-            if (!$token->type && isExpr($token->value)) {
+            if (!$token->type and isExpr($token->value)) {
                 $token->type = T_EXPR;
                 $token->children = $this->generateTokens(parseExpr($token->value));
                 if ($token->children) {
@@ -36,7 +36,7 @@ abstract class LexerBase
                 $token->next->type = T_CONST_ID;
             } elseif ($token->type === T_VAR) {
                 $token->next->type = T_VAR_ID;
-            } elseif ($token->type === T_ASSIGN && !$token->prev->type) {
+            } elseif ($token->type === T_ASSIGN and !$token->prev->type) {
                 $token->prev->type = T_VAR_ID;
             }
             if ($tokens->children) {
@@ -55,15 +55,15 @@ function isString($input) {
     $split = preg_split('~(?:([\'"])\s*([,+]))~', $input)[0] ?? null;
     if ($split) {
         $fChr = $split[0]; $lChr = substr($split, -1);
-        return ($fChr === "'" && $lChr === "'") || ($fChr === '"' && $lChr === '"');
+        return ($fChr === "'" and $lChr === "'") || ($fChr === '"' and $lChr === '"');
     }
     return false;
 }
 function isValue($input) { return isNumber($input) || isString($input); }
-function isExpr($input) { return !isId($input) && !isKeyword($input) && !isValue($input); }
+function isExpr($input) { return !isId($input) and !isKeyword($input) and !isValue($input); }
 function isOpr($input) { return preg_match('~^[\?\^\~|&<>:!=%.@*/+-]+$~', $input); }
-function isLetterChr($chr) { return ($chr >= 'a' && $chr <= 'z') || ($chr >= 'A' && $chr <= 'Z'); }
-function isNumberChr($chr) { return ($chr >= '0' && $chr <= '9'); }
+function isLetterChr($chr) { return ($chr >= 'a' and $chr <= 'z') || ($chr >= 'A' and $chr <= 'Z'); }
+function isNumberChr($chr) { return ($chr >= '0' and $chr <= '9'); }
 function isIdChr($chr) { return ($chr === '_') || isLetterChr($chr) || isNumberChr($chr); }
 
 // operator'lerin hepsi belirlenmeli, aksi halde var id veya diger id'leri atamak cok sikinti (if token.next.type = x meselesi)!!!
