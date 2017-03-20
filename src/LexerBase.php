@@ -7,7 +7,7 @@ abstract class LexerBase
 {
     function toAst(TokenCollection $tokens) { //return $tokens->toArray();
         $tokens = $this->setObjectIds($tokens);
-        $tokens = $this->setFunIds($tokens);
+        $tokens = $this->setFunctionIds($tokens);
         $tokens = $this->setAssignIds($tokens);
         $array = [];
         foreach ($tokens as $i => $token) {
@@ -54,11 +54,11 @@ abstract class LexerBase
         }
         return $tokens;
     }
-    function setFunIds(TokenCollection $tokens) {
+    function setFunctionIds(TokenCollection $tokens) {
         $tokens->reset();
         while ($token = $tokens->next()) {
-            if ($token->type === T_FUN) {
-                $token->next->type = T_FUN_ID;
+            if ($token->type === T_FUNCTION) {
+                $token->next->type = T_FUNCTION_ID;
             }
         }
         return $tokens;

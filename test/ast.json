@@ -1,56 +1,59 @@
 [
     {
-        "value": "object",
-        "type": "T_OBJECT",
-        "line": 1,
+        "value": "fun",
+        "type": "T_FUNCTION",
         "index": 0
     },
     {
-        "value": "trait",
-        "type": "T_TRAIT",
-        "line": 1,
+        "value": "foo",
+        "type": "T_FUNCTION_ID",
         "index": 1
     },
     {
-        "value": "Book",
-        "type": "T_OBJECT_ID",
-        "line": 1,
-        "index": 2
+        "value": "()",
+        "type": "T_EXPR",
+        "index": 2,
+        "children": [
+            {
+                "value": "(",
+                "type": "T_PAREN_OPEN",
+                "index": 0
+            },
+            {
+                "value": ")",
+                "type": "T_PAREN_CLOSE",
+                "index": 1
+            }
+        ]
     },
     {
         "value": ":",
         "type": "T_COLON",
-        "line": 1,
         "index": 3
     },
     {
         "value": "\n",
         "type": "T_EOL",
-        "line": 1,
         "index": 4
     },
     {
         "value": "    ",
         "type": "T_INDENT",
-        "line": 2,
         "index": 0
     },
     {
         "value": "//",
         "type": "T_COMMENT",
-        "line": 2,
         "index": 1
     },
     {
-        "value": "...",
+        "value": "comment",
         "type": "T_COMMENT_CONTENT",
-        "line": 2,
         "index": 2
     },
     {
         "value": "\n",
         "type": "T_EOL",
-        "line": 2,
         "index": 3
     }
 ]

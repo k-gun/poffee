@@ -195,7 +195,7 @@ class Lexer extends LexerBase
                             }
                         }
                         break;
-                    case T_FUN:
+                    case T_FUNCTION:
                         while (($t = $tokens->next()) && $t->value !== C_EOL) {
                             if ($t->type) continue;
                             if ($t->value === C_PRIVATE) {
@@ -203,14 +203,14 @@ class Lexer extends LexerBase
                             } elseif ($t->value === C_PROTECTED) {
                                 $t->type = T_PROTECTED;
                             } elseif ($t->value[0] === '(') {
-                                $t->type = T_FUN_ARGS_EXPR;
+                                $t->type = T_FUNCTION_ARGS_EXPR;
                                 if ($t->prev->prev->type === T_ASSIGN) {
-                                    $token->type = T_FUN_ANON; // fix token type
+                                    $token->type = T_FUNCTION_ANON; // fix token type
                                 } else {
-                                    $t->prev->type = T_FUN_ID;
+                                    $t->prev->type = T_FUNCTION_ID;
                                 }
                             } elseif (isId($t->value)) {
-                                $t->type = T_FUN_RET_TYPE;
+                                $t->type = T_FUNCTION_RET_TYPE;
                             }
                         }
                         break;
@@ -235,7 +235,7 @@ class Lexer extends LexerBase
                                 $next->type = T_VAR_ID;
                             } elseif (isId($next->value)) {
                                 if ($next->next && $next->next->type === T_PAREN_OPEN) {
-                                    $next->type = T_FUN_ID;
+                                    $next->type = T_FUNCTION_ID;
                                 } else {
                                     $next->type = T_VAR_ID;
                                 }
@@ -268,7 +268,7 @@ class Lexer extends LexerBase
                                 if ($next->type === T_ASSIGN) {
                                     $token->type = T_VAR_ID;
                                 } elseif ($next->type === T_PAREN_OPEN && isId($token->value)) {
-                                    $token->type = T_FUN_ID;
+                                    $token->type = T_FUNCTION_ID;
                                 } elseif (isId($token->value)) {
                                     $token->type = T_VAR_ID;
                                 }
@@ -319,7 +319,7 @@ class Lexer extends LexerBase
             case 'trait': return T_TRAIT;
             case 'const': return T_CONST;
             case 'var': return T_VAR;
-            case 'fun': return T_FUN;
+            case 'fun': return T_FUNCTION;
             case 'this': return T_THIS;
             case 'return': return T_RETURN;
             case 'static': return T_STATIC;
@@ -334,7 +334,7 @@ class Lexer extends LexerBase
             case 'require': return T_REQUIRE; case 'require_once': return T_REQUIRE_ONCE;
             case 'include': return T_INCLUDE; case 'include_once': return T_INCLUDE_ONCE;
             case 'die': case 'echo': case 'empty': case 'eval': case 'exit':
-            case 'isset': case 'list': case 'print': case 'unset': case '__halt_compiler': return T_FUN_ID;
+            case 'isset': case 'list': case 'print': case 'unset': case '__halt_compiler': return T_FUNCTION_ID;
 
             default:
                 if (isNumber($value)) {

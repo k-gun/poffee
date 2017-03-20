@@ -1,2 +1,2 @@
-object trait Book:
-    // ...
+fun foo():
+    //comment
