@@ -141,7 +141,7 @@ class Lexer extends LexerBase
             ];
             $tokens[] = $token;
         }
-        $tokens = new Tokens($tokens);
+        $tokens = new TokenCollection($tokens);
         return $tokens;
         if (!$tokens->isEmpty()) {
             while ($token = $tokens->next()) {
