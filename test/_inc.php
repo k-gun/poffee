@@ -28,7 +28,7 @@ function prd($arg) {
 }
 function prf($arg, $f = 'ast.json') {
     // file_put_contents($f, _p($arg));
-    file_put_contents($f, json_encode($arg, JSON_PRETTY_PRINT));
+    file_put_contents($f, json_encode($arg, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
 }
 
 function autoload() {
