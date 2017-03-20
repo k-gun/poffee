@@ -1,1 +1,2 @@
-a = str[0:1]
+object trait Book:
+    // ...

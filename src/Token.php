@@ -3,6 +3,8 @@ declare(strict_types=1); namespace Poffee;
 
 class Token
 {
+    public  $tokens;
+
     public function __construct(TokenCollection $tokens, array $data)
     {
         $this->tokens = $tokens;

@@ -52,20 +52,20 @@ const T_AND = 'T_AND';
 const T_OR = 'T_OR';
 const T_IN = 'T_IN';
 
-const T_PRNT_BLOCK = 'T_PRNT_BLOCK';
-const T_OPEN_PRNT = 'T_OPEN_PRNT';
-const T_CLOSE_PRNT = 'T_CLOSE_PRNT';
-const T_BRKT_BLOCK = 'T_BRKT_BLOCK';
-const T_OPEN_BRKT = 'T_OPEN_BRKT';
-const T_CLOSE_BRKT = 'T_CLOSE_BRKT';
+const T_OPEN_PAREN = 'T_OPEN_PAREN';
+const T_CLOSE_PAREN = 'T_CLOSE_PAREN';
+const T_OPEN_BRACK = 'T_OPEN_BRACK';
+const T_CLOSE_BRACK = 'T_CLOSE_BRACK';
+const T_PAREN_BLOCK = 'T_PAREN_BLOCK';
+const T_BRACK_BLOCK = 'T_BRACK_BLOCK';
 
 const T_ID = 'T_ID';
+const T_MODULE_ID = 'T_MODULE_ID';
+const T_OBJECT_ID = 'T_OBJECT_ID';
 const T_VAR_ID = 'T_VAR_ID';
 const T_FUN_ID = 'T_FUN_ID';
 const T_CONST_ID = 'T_CONST_ID';
-const T_OBJECT_ID = 'T_OBJECT_ID';
-const T_METHOD_ID = 'T_METHOD_ID';
-const T_MODULE_ID = 'T_MODULE_ID';
+
 
 const T_EXPR = 'T_EXPR';
 const T_NOT_EXPR = 'T_NOT_EXPR';

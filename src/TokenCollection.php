@@ -9,11 +9,13 @@ class TokenCollection implements \IteratorAggregate
 
     public function __construct(array $tokens = null)
     {
-        if ($tokens) foreach ($tokens as $token) {
-            if (is_object($token)) {
-                $token = $token->toArray();
+        if ($tokens) {
+            foreach ($tokens as $token) {
+                // if ($token instanceof Token) {
+                //     $token = $token->toArray();
+                // }
+                $this->add($token);
             }
-            $this->add($token);
         }
     }
     public function __get($name)

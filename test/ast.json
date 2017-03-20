@@ -1,6 +1,56 @@
-{
-    "value": "\n",
-    "type": "T_EOL",
-    "line": 1,
-    "index": 3
-}
+[
+    {
+        "value": "object",
+        "type": "T_OBJECT",
+        "line": 1,
+        "index": 0
+    },
+    {
+        "value": "trait",
+        "type": "T_TRAIT",
+        "line": 1,
+        "index": 1
+    },
+    {
+        "value": "Book",
+        "type": "T_OBJECT_ID",
+        "line": 1,
+        "index": 2
+    },
+    {
+        "value": ":",
+        "type": "T_COLON",
+        "line": 1,
+        "index": 3
+    },
+    {
+        "value": "\n",
+        "type": "T_EOL",
+        "line": 1,
+        "index": 4
+    },
+    {
+        "value": "    ",
+        "type": "T_INDENT",
+        "line": 2,
+        "index": 0
+    },
+    {
+        "value": "\/\/",
+        "type": "T_COMMENT",
+        "line": 2,
+        "index": 1
+    },
+    {
+        "value": "...",
+        "type": "T_OPR",
+        "line": 2,
+        "index": 2
+    },
+    {
+        "value": "\n",
+        "type": "T_EOL",
+        "line": 2,
+        "index": 3
+    }
+]

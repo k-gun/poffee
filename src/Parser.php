@@ -5,9 +5,9 @@ class Parser
 {
     private $lexer;
 
-    public function __construct()
+    public function __construct(string $indent = null)
     {
-        $this->lexer = new Lexer();
+        $this->lexer = new Lexer($indent);
     }
 
     public function parse(FileReader $reader)

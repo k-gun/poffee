@@ -46,7 +46,7 @@ class Lexer extends LexerBase
         }
     }
 
-    public function scan($file, $line, $input, $inputArray = null)
+    public function scan($file, $line, $input, $inputs = null)
     {
         $this->file = $file;
         $this->line = $line;
@@ -236,7 +236,7 @@ class Lexer extends LexerBase
                             if ($token->value === C_INC || $token->value === C_DEC) {
                                 $next->type = T_VAR_ID;
                             } elseif (isId($next->value)) {
-                                if ($next->next && $next->next->type === T_OPEN_PRNT) {
+                                if ($next->next && $next->next->type === T_OPEN_PAREN) {
                                     $next->type = T_FUN_ID;
                                 } else {
                                     $next->type = T_VAR_ID;
@@ -269,7 +269,7 @@ class Lexer extends LexerBase
                                 // pre($token->value);
                                 if ($next->type === T_ASSIGN) {
                                     $token->type = T_VAR_ID;
-                                } elseif ($next->type === T_OPEN_PRNT && isId($token->value)) {
+                                } elseif ($next->type === T_OPEN_PAREN && isId($token->value)) {
                                     $token->type = T_FUN_ID;
                                 } elseif (isId($token->value)) {
                                     $token->type = T_VAR_ID;
@@ -304,10 +304,10 @@ class Lexer extends LexerBase
             case ',':           return T_COMMA;
             case '?':           return T_QUESTION;
             case '//':          return T_COMMENT;
-            case '(':           return T_OPEN_PRNT;
-            case ')':           return T_CLOSE_PRNT;
-            case '[':           return T_OPEN_BRKT;
-            case ']':           return T_CLOSE_BRKT;
+            case '(':           return T_OPEN_PAREN;
+            case ')':           return T_CLOSE_PAREN;
+            case '[':           return T_OPEN_BRACK;
+            case ']':           return T_CLOSE_BRACK;
 
             // bunlar icin getTokenTypeFromConst() kullan sonra
             case 'declare': return T_DECLARE;
@@ -324,10 +324,8 @@ class Lexer extends LexerBase
             case 'fun': return T_FUN;
             case 'this': return T_THIS;
             case 'return': return T_RETURN;
-
             case 'static': return T_STATIC;
             case 'global': return T_GLOBAL;
-
             case 'null': return T_NULL;
             case 'true': case 'false': return T_BOOL;
             case 'if': return T_IF; case 'else': return T_ELSE; case 'elseif': return T_ELSEIF;
@@ -337,28 +335,27 @@ class Lexer extends LexerBase
             case 'and': return T_AND; case 'or': return T_OR;
             case 'require': return T_REQUIRE; case 'require_once': return T_REQUIRE_ONCE;
             case 'include': return T_INCLUDE; case 'include_once': return T_INCLUDE_ONCE;
-
             case 'die': case 'echo': case 'empty': case 'eval': case 'exit':
             case 'isset': case 'list': case 'print': case 'unset': case '__halt_compiler': return T_FUN_ID;
 
             default:
+                if (isNumber($value)) {
+                    return T_NUMBER;
+                }
                 if (isString($value)) {
                     return T_STRING;
-                }
-                $fChr = $value[0]; $lChr = substr($value, -1);
-                // burasi sikintili gibi, bakilacak
-                if ($fChr === '[' && $lChr === ']') {
-                    return T_ARRAY_EXPR;
-                }
-                if ($fChr === '(' && $lChr === ')') {
-                    // return T_EXPR; ?? // yukarda isValidExpression sorgusunu engelliyor
-                }
-                if (is_numeric($value)) {
-                    return T_NUMBER;
                 }
                 if (isOpr($value)) {
                     return T_OPR;
                 }
+                // $fChr = $value[0]; $lChr = substr($value, -1);
+                // burasi sikintili gibi, bakilacak
+                // if ($fChr === '[' && $lChr === ']') {
+                //     return T_ARRAY_EXPR;
+                // }
+                // if ($fChr === '(' && $lChr === ')') {
+                //     return T_EXPR; ?? // yukarda isValidExpression sorgusunu engelliyor
+                // }
         }
         return null;
     }

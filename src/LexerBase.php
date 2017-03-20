@@ -6,29 +6,54 @@ include 'const.php';
 abstract class LexerBase
 {
     function toAst(TokenCollection $tokens) { //return $tokens->toArray();
+        $tokens = $this->setObjectIds($tokens);
         $tokens = $this->setAssignIds($tokens);
         // $tokens = $this->setFunIds($tokens); burdayim
         $array = [];
         foreach ($tokens as $i => $token) {
-            $array[$i] = $token->toArray(true);
             unset($token->tokens);
             if (!$token->type and isExpr($token->value)) {
                 $token->type = T_EXPR;
-                $token->children = $this->generateTokens(parseExpr($token->value));
-                if ($token->children) {
-                    $array[$i]['children'] = $this->toAst($token->children);
-                    // $array = array_merge($array, $this->toAst($token->children));
+                $children = $this->generateTokens(parseExpr($token->value));
+                if ($children) {
+                    $token->children = $this->toAst($children);
+                    // $array[$i]['children'] = $this->toAst($token->children); // or
+                    // $array = array_merge($array, $this->toAst(new TokenCollection($token->children))); // or
                     // unset($token->children);
                 }
             }
             // skip expressions, cos all should be parsed above already
-            if ($token->type !== T_EXPR) {
-                $array = $token->toArray(true);
-            }
+            // if ($token->type !== T_EXPR) {
+            //     $array[] = $token->toArray(true);
+            // }
+            $array[] = $token->toArray(true);
         }
         return $array;
     }
-
+    function setObjectIds(TokenCollection $tokens) {
+        $tokens->reset();
+        while ($token = $tokens->next()) {
+            if ($token->type === T_MODULE) {
+                $token->next->type = T_MODULE_ID;
+            } elseif ($token->type === T_CLASS or $token->type === T_INTERFACE or $token->type === T_TRAIT or $token->type === T_FUN) {
+                $token->next->type = T_OBJECT_ID;
+            } elseif ($token->type === T_OBJECT_ID) {
+                $next = $tokens->next();
+                // bu while i yukari al // if type == T_OBJECT yap T_OBJECT_ID degil
+                while ($next and $next->type !== T_COLON) {
+                    if ($next->value === '>') {
+                        $next->type = T_EXTENDS;
+                    } elseif ($next->value === '>>') {
+                        $next->type = T_IMPLEMENTS;
+                    } else {
+                        $next->type = T_OBJECT_ID;
+                    }
+                    $next = $tokens->next();
+                }
+            }
+        }
+        return $tokens;
+    }
     function setAssignIds(TokenCollection $tokens) {
         $tokens->reset();
         while ($token = $tokens->next()) {
@@ -59,18 +84,19 @@ function isString($input) {
     }
     return false;
 }
+function isOpr($input) { return preg_match('~^[\?\^\~|&<>:!=%.@*/+-]+$~', $input); }
 function isValue($input) { return isNumber($input) or isString($input); }
 function isExpr($input) { return !isId($input) and !isKeyword($input) and !isValue($input); }
-function isOpr($input) { return preg_match('~^[\?\^\~|&<>:!=%.@*/+-]+$~', $input); }
 function isLetterChr($chr) { return ($chr >= 'a' and $chr <= 'z') or ($chr >= 'A' and $chr <= 'Z'); }
 function isNumberChr($chr) { return ($chr >= '0' and $chr <= '9'); }
 function isIdChr($chr) { return ($chr === '_') or isLetterChr($chr) or isNumberChr($chr); }
 
 // operator'lerin hepsi belirlenmeli, aksi halde var id veya diger id'leri atamak cok sikinti (if token.next.type = x meselesi)!!!
+// comment content i almiyor operator diyor, Lexer split yapmiyor galiba
 function parseExpr($expr) {
-    $next = function($i) use($expr) {
-        return ($expr[$i + 1] ?? '');
-    };
+    // $next = function($i) use($expr) {
+    //     return ($expr[$i + 1] ?? '');
+    // };
     $stack = []; $depth = 0; $buffer = null; $bufferIndex = null;
     for ($i = 0; isset($expr[$i]); $i++) {
         $chr = $expr[$i];
