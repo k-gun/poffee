@@ -55,16 +55,16 @@ function isString($input) {
     $split = preg_split('~(?:([\'"])\s*([,+]))~', $input)[0] ?? null;
     if ($split) {
         $fChr = $split[0]; $lChr = substr($split, -1);
-        return ($fChr === "'" and $lChr === "'") || ($fChr === '"' and $lChr === '"');
+        return ($fChr === "'" and $lChr === "'") or ($fChr === '"' and $lChr === '"');
     }
     return false;
 }
-function isValue($input) { return isNumber($input) || isString($input); }
+function isValue($input) { return isNumber($input) or isString($input); }
 function isExpr($input) { return !isId($input) and !isKeyword($input) and !isValue($input); }
 function isOpr($input) { return preg_match('~^[\?\^\~|&<>:!=%.@*/+-]+$~', $input); }
-function isLetterChr($chr) { return ($chr >= 'a' and $chr <= 'z') || ($chr >= 'A' and $chr <= 'Z'); }
+function isLetterChr($chr) { return ($chr >= 'a' and $chr <= 'z') or ($chr >= 'A' and $chr <= 'Z'); }
 function isNumberChr($chr) { return ($chr >= '0' and $chr <= '9'); }
-function isIdChr($chr) { return ($chr === '_') || isLetterChr($chr) || isNumberChr($chr); }
+function isIdChr($chr) { return ($chr === '_') or isLetterChr($chr) or isNumberChr($chr); }
 
 // operator'lerin hepsi belirlenmeli, aksi halde var id veya diger id'leri atamak cok sikinti (if token.next.type = x meselesi)!!!
 function parseExpr($expr) {
@@ -119,7 +119,7 @@ function parseExpr($expr) {
                 $buffer = $chr; $bufferIndex = $i;
                 $nextChr = $expr[$i + 1] ?? '';
                 if ($chr === '?') {
-                    if ($nextChr === '?' || $nextChr === ':') {
+                    if ($nextChr === '?' or $nextChr === ':') {
                         $buffer .= $nextChr;
                         $i++;
                     }
