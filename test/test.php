@@ -2,9 +2,12 @@
 include '_inc.php';
 autoload();
 
+$reader = new Poffee\FileReader('book.poffee');
+$writer = new Poffee\FileWriter('book.php');
 $parser = new Poffee\Parser();
-$parser->parse(__dir__.'/book.poffee');
-// pre($parser);
+$tokens = $parser->parse($reader);
+// $writer->write($tokens);
+prf($tokens);
 
 
 // pre(defined("T_SPACE"));

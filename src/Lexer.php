@@ -107,7 +107,7 @@ class Lexer extends LexerBase
             | (?:(^\s+)?(require|include(?:_once)?)\s*(.*))                # require, include ..
             | (?:(^\s+)?(return)\s*(.*))                # return
             | (?:(^\s+)?(?:(var)\s+)?([a-z_]\w*)\s*(=)\s*(.+))       # assign
-            | (?:(^\s+)?([a-z_]\w*)\s*([\^\~<>!=%.&@*/+-]=)\s*(.+))       # operators
+            | (?:(^\s+)?([a-z_]\w*)\s*([\^\~<>!=%.&*/+-]=(?:\s*)(@)?)\s*(.+))       # operators
             #| (?:(^\s+)?(.+))
         )~ix';
         $matches = $this->getMatches($pattern, $input);

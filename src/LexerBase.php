@@ -48,6 +48,7 @@ const T_ISE = 'T_ISE';
 const T_NOT = 'T_NOT';
 const T_AND = 'T_AND';
 const T_OR = 'T_OR';
+const T_IN = 'T_IN';
 
 const T_PRNT_BLOCK = 'T_PRNT_BLOCK';
 const T_OPEN_PRNT = 'T_OPEN_PRNT';
@@ -117,7 +118,7 @@ abstract class LexerBase
 {
     function toAst(Tokens $tokens) { //return $tokens->toArray();
         $tokens = $this->setAssignIds($tokens);
-        $tokens = $this->setFunIds($tokens);
+        // $tokens = $this->setFunIds($tokens); burdayim
         $array = [];
         foreach ($tokens as $i => $token) {
             unset($token->tokens);
@@ -320,7 +321,7 @@ class Tokens implements \IteratorAggregate
     }
 }
 
-// cache these?
+// cache these? sil!
 function isValidColon($input) {
     // bunlari galiba tokenize den sonraya alicaz
     // return $input && $input !== PHP_EOL &&
@@ -372,35 +373,43 @@ function isExpr($input) {
 }
 // var_dump(isExpr('(i++) + 1'));
 // die;
-function isOpr($input) { return preg_match('~^(?:[\^\~<>!=%.&@*/+-]+|ise?|not|ise?\s+not|and|or)$~', $input); }
+function isOpr($input) { return preg_match('~^[\?\^\~|&<>:!=%.@*/+-]+$~', $input); }
 function isLetterChr($chr) { return ($chr >= 'a' && $chr <= 'z') || ($chr >= 'A' && $chr <= 'Z'); }
 function isNumberChr($chr) { return ($chr >= '0' && $chr <= '9'); }
 function isIdChr($chr) { return ($chr === '_') || isLetterChr($chr) || isNumberChr($chr); }
 
+// @link http://php.net/manual/en/language.operators.precedence.php
 function parseExpr($expr) {
+    $next = function($i) use($expr) {
+        return ($expr[$i + 1] ?? '');
+    };
     $stack = []; $depth = 0; $buffer = null; $bufferIndex = null;
     for ($i = 0; isset($expr[$i]); $i++) {
         $chr = $expr[$i];
         switch ($chr) {
-            case ' ': // space
+            // space
+            case ' ':
                 if (!$depth) {
                     continue 2;
                 }
                 break;
-            case isIdChr($chr): // id's
+            // id's
+            case isIdChr($chr):
                 $buffer = $chr; $bufferIndex = $i;
                 while (isIdChr($nextChr = ($expr[$i + 1] ?? ''))) {
                     $buffer .= $nextChr;
                     $i++;
                 }
                 break;
-            case "'": case '"': // string literals
+            // string's
+            case "'":
+            case '"':
                 $buffer = $chr; $bufferIndex = $i;
-                while (isset($expr[$i + 1])) {
+                while (isset($expr[$i])) {
                     $nextChr = ($expr[$i + 1] ?? '');
                     $nextNextChr = ($expr[$i + 2] ?? '');
-                    $nextNextNextChr = ($expr[$i + 3] ?? '');
                     if ($nextChr !== '\\' and $nextNextChr === $chr) {
+                        $buffer .= $nextChr;
                         $i++;
                         break;
                     }
@@ -410,67 +419,64 @@ function parseExpr($expr) {
                 $buffer .= $chr;
                 $i++;
                 break;
-            case '+': case '-': // ++ -- += -= *= **= <<= >>= test et!
-            case '*': case '<': case '>':
+            // operator's: ++ -- += -= *= **= <<= >>= <>
+            case '+':
+            case '-':
+            case '*':
+            case '<':
+            case '>':
+            case '&':
+            case '|':
+            case '?':
                 $buffer = $chr; $bufferIndex = $i;
-                while (($nextChr = ($expr[$i + 1] ?? '')) === $chr) {
+                $nextChr = $expr[$i + 1] ?? '';
+                if ($chr === '?') {
+                    if ($nextChr === '?' || $nextChr === ':') {
+                        $buffer .= $nextChr;
+                        $i++;
+                    }
+                } elseif ($nextChr === '>') {
                     $buffer .= $nextChr;
                     $i++;
+                } else {
+                    if ($nextChr === $chr) {
+                        $buffer .= $nextChr;
+                        $i++;
+                    }
+                    $nextChr = $expr[$i + 1] ?? '';
+                    if ($nextChr === '=') {
+                        $buffer .= $nextChr;
+                        $i++;
+                    }
                 }
+                break;
+            // operator's: .= /= %= ^=
+            case '.':
+            case '/':
+            case '%':
+            case '^':
+                $buffer = $chr; $bufferIndex = $i;
                 if (($nextChr = $expr[$i + 1] ?? '') === '=') {
                     $buffer .= $nextChr;
                     $i++;
                 }
                 break;
-            // case '?': // ?: and ?? expressions
-            //     $buffer = $chr;
-            //     $bufferIndex = $i - 1;
-            //     if ($expr[$i] === ':' || $expr[$i] === '?') {
-            //         $buffer .= $expr[$i];
-            //         $i++;
-            //     }
-            //     break;
-            // case '=': // == ===
-            //     $buffer = $chr;
-            //     $bufferIndex = $i - 1;
-            //     while (isset($expr[$i]) && ($nextChr = $expr[$i]) === '=') {
-            //         $buffer .= $nextChr;
-            //         $i++;
-            //     }
-            //     break;
-            // case '*': // *= **= <<= >>=
-            // case '<': case '>':
-            //     $buffer = $chr;
-            //     $bufferIndex = $i - 1;
-            //     while (isset($expr[$i]) && ($nextChr = $expr[$i]) === $chr || $nextChr === '=') {
-            //         $buffer .= $nextChr;
-            //         $i++;
-            //     }
-            //     break;
-            // case '/': // /= += -= *= .= %= &= |= ^= && || -- ++
-            // case '+': case '-':
-            // case '%': case '&':
-            // case '|': case '^':
-            // case '.':
-            //     $buffer = $chr;
-            //     $bufferIndex = $i - 1;
-            //     if (isset($expr[$i]) && ($nextChr = $expr[$i]) === $chr || $nextChr === '=') {
-            //         $buffer .= $nextChr;
-            //         $i++;
-            //     }
-            //     break;
-            // case '!':
-            //     $buffer = $chr;
-            //     $bufferIndex = $i - 1;
-            //     if (isOpr($expr[$i])) { // != etc
-            //         $buffer .= $expr[$i];
-            //         $i++;
-            //         if (isOpr($expr[$i])) { // !== etc
-            //             $buffer .= $expr[$i];
-            //             $i++;
-            //         }
-            //     }
-            //     break;
+            // operator's: = == == != !==
+            case '=':
+            case '!':
+                $buffer = $chr; $bufferIndex = $i;
+                $nextChr = $expr[$i + 1] ?? '';
+                if ($nextChr === '=') {
+                    $buffer .= $nextChr;
+                    $i++;
+                }
+                $nextChr = $expr[$i + 1] ?? '';
+                if ($nextChr === '=') {
+                    $buffer .= $nextChr;
+                    $i++;
+                }
+                break;
+            // all others
             default:
                 if ($depth) {
                     $depth--;
@@ -490,12 +496,15 @@ function parseExpr($expr) {
     return $stack;
 }
 
-include '../test/_inc.php';
-
-prd(parseExpr('a = "1..\".1"'));
-prd(parseExpr("a = '1..\.1'"));
-prd(parseExpr("a **= 1"));
-prd(parseExpr("a = '1.\'.1'"));
-prd(parseExpr('a = "1.\".1"'));
+// include_once '../test/_inc.php';
+// $exprs = [
+//     'a = 1',
+//     'a .= "bc"',
+//     '"ab\"c"'
+// ];
+// foreach ($exprs as $expr) {
+//     pre(parseExpr($expr));
+//     pre('...');
+// }
 
 // operator'lerin hepsi belirlenmeli, aksi halde var id veya diger id'leri atamak cok sikinti (if token.next.type = x meselesi)!!!
