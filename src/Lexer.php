@@ -30,7 +30,7 @@ function isValidExpression($input) {
 
 class Lexer extends LexerBase
 {
-    protected static $eol = PHP_EOL, $space = ' ', $indent = '    ', $indentLength = 4, $cache = [];
+    protected static $eol = PHP_EOL, $space = ' ', $comment = '//', $indent = '    ', $indentLength = 4, $cache = [];
     protected $file, $line;
 
     public function __construct(string $indent = null)
@@ -110,7 +110,7 @@ class Lexer extends LexerBase
     public function generateTokens(array $matches, $debug = false)
     {
         $tokens = [];
-        foreach ($matches as $match) {
+        foreach ($matches as $i => $match) {
             // if ($debug) pre($match);
             // $value = is_array($match) ? $match[0] : $match;
             $value = $match[0];
@@ -124,6 +124,8 @@ class Lexer extends LexerBase
                 }
                 $type = T_INDENT;
                 // $token['size'] = $length; // / self::$indentLength;
+            } elseif (isset($tokens[$i - 1]) and $tokens[$i - 1]['type'] === T_COMMENT) { // skip comments
+                $type = T_COMMENT_CONTENT;
             } else {
                 $type = $this->getType($value);
             }
@@ -135,6 +137,7 @@ class Lexer extends LexerBase
         }
         $tokens = new TokenCollection($tokens);
         return $tokens;
+
         if (!$tokens->isEmpty()) {
             while ($token = $tokens->next()) {
                 $prev = $token->prev(); $next = $token->next();

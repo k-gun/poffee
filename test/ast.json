@@ -36,10 +36,16 @@
         "index": 0
     },
     {
-        "value": "// ...",
+        "value": "//",
         "type": "T_COMMENT",
         "line": 2,
         "index": 1
+    },
+    {
+        "value": "...",
+        "type": "T_COMMENT_CONTENT",
+        "line": 2,
+        "index": 2
     },
     {
         "value": "\n",

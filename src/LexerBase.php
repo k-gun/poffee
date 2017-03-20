@@ -6,7 +6,7 @@ include 'const.php';
 abstract class LexerBase
 {
     function toAst(TokenCollection $tokens) { //return $tokens->toArray();
-        $tokens = $this->checkComments($tokens);
+        // $tokens = $this->checkComments($tokens);
         $tokens = $this->setObjectIds($tokens);
         $tokens = $this->setAssignIds($tokens);
         // $tokens = $this->setFunIds($tokens); burdayim
@@ -14,14 +14,14 @@ abstract class LexerBase
         foreach ($tokens as $i => $token) {
             unset($token->tokens);
             if (!$token->type and isExpr($token->value)) {
-                $token->type = T_EXPR;
-                $children = $this->generateTokens(parseExpr($token->value));
-                if ($children) {
-                    $token->children = $this->toAst($children);
-                    // $array[$i]['children'] = $this->toAst($token->children); // or
-                    // $array = array_merge($array, $this->toAst(new TokenCollection($token->children))); // or
-                    // unset($token->children);
-                }
+                // $token->type = T_EXPR;
+                // $children = $this->generateTokens(parseExpr($token->value));
+                // if ($children) {
+                //     $token->children = $this->toAst($children);
+                //     // $array[$i]['children'] = $this->toAst($token->children); // or
+                //     // $array = array_merge($array, $this->toAst(new TokenCollection($token->children))); // or
+                //     // unset($token->children);
+                // }
             }
             // skip expressions, cos all should be parsed above already
             // if ($token->type !== T_EXPR) {
@@ -145,6 +145,15 @@ function parseExpr($expr) {
                 $buffer .= $chr;
                 $i++;
                 break;
+            // operator's: ?? ?:
+            case '?':
+                $buffer = $chr; $bufferIndex = $i;
+                $nextChr = $expr[$i + 1] ?? '';
+                if ($nextChr === '?' or $nextChr === ':') {
+                    $buffer .= $nextChr;
+                    $i++;
+                }
+                break;
             // operator's: ++ -- += -= *= **= <<= >>= <>
             case '+':
             case '-':
@@ -153,15 +162,9 @@ function parseExpr($expr) {
             case '>':
             case '&':
             case '|':
-            case '?':
                 $buffer = $chr; $bufferIndex = $i;
                 $nextChr = $expr[$i + 1] ?? '';
-                if ($chr === '?') {
-                    if ($nextChr === '?' or $nextChr === ':') {
-                        $buffer .= $nextChr;
-                        $i++;
-                    }
-                } elseif ($nextChr === '>') {
+                if ($nextChr === '>') {
                     $buffer .= $nextChr;
                     $i++;
                 } else {
@@ -176,13 +179,14 @@ function parseExpr($expr) {
                     }
                 }
                 break;
-            // operator's: .= /= %= ^=
+            // operator's: .= /= %= ^= or // comment
             case '.':
             case '/':
             case '%':
             case '^':
                 $buffer = $chr; $bufferIndex = $i;
-                if (($nextChr = $expr[$i + 1] ?? '') === '=') {
+                $nextChr = $expr[$i + 1] ?? '';
+                if ($nextChr === '=') {
                     $buffer .= $nextChr;
                     $i++;
                 }
@@ -215,6 +219,7 @@ function parseExpr($expr) {
 
         if ($buffer !== null) {
             $stack[] = [$buffer, $bufferIndex];
+            // reset
             $buffer = $bufferIndex = null;
         }
     }
