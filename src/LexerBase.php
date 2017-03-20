@@ -13,14 +13,14 @@ abstract class LexerBase
         foreach ($tokens as $i => $token) {
             unset($token->tokens);
             if (!$token->type and isExpr($token->value)) {
-                // $token->type = T_EXPR;
-                // $children = $this->generateTokens(parseExpr($token->value));
-                // if ($children) {
-                //     $token->children = $this->toAst($children);
-                //     // $array[$i]['children'] = $this->toAst($token->children); // or
-                //     // $array = array_merge($array, $this->toAst(new TokenCollection($token->children))); // or
-                //     // unset($token->children);
-                // }
+                $token->type = T_EXPR;
+                $children = $this->generateTokens(parseExpr($token->value));
+                if ($children) {
+                    $token->children = $this->toAst($children);
+                    // $array[$i]['children'] = $this->toAst($token->children); // or
+                    // $array = array_merge($array, $this->toAst(new TokenCollection($token->children))); // or
+                    // unset($token->children);
+                }
             }
             // skip expressions, cos all should be parsed above already
             // if ($token->type !== T_EXPR) {
