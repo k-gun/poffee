@@ -6,7 +6,6 @@ include 'const.php';
 abstract class LexerBase
 {
     function toAst(TokenCollection $tokens) { //return $tokens->toArray();
-        // $tokens = $this->checkComments($tokens);
         $tokens = $this->setObjectIds($tokens);
         $tokens = $this->setAssignIds($tokens);
         // $tokens = $this->setFunIds($tokens); burdayim
@@ -30,17 +29,6 @@ abstract class LexerBase
             $array[] = $token->toArray(true);
         }
         return $array;
-    }
-    function checkComments(TokenCollection $tokens) {
-        $tokens->reset();
-        while ($token = $tokens->next()) {
-            if ($token->type === T_COMMENT) {
-                $token->value = sprintf('// %s', trim($token->next->value));
-                // drop comment content
-                $token->next->tokens->remove($token->next);
-            }
-        }
-        return $tokens;
     }
     function setObjectIds(TokenCollection $tokens) {
         $tokens->reset();
