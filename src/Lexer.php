@@ -124,7 +124,7 @@ class Lexer extends LexerBase
                 }
                 $type = T_INDENT;
                 // $token['size'] = $length; // / self::$indentLength;
-            } elseif (isset($tokens[$i - 1]) and $tokens[$i - 1]['type'] === T_COMMENT) { // skip comments
+            } elseif (($tokens[$i - 1]['type'] ?? '') === T_COMMENT) { // skip comments
                 $type = T_COMMENT_CONTENT;
             } else {
                 $type = $this->getType($value);
