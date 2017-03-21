@@ -1,25 +1,31 @@
 [
     {
-        "value": "fun",
-        "type": "T_FUNCTION"
+        "value": "object",
+        "type": "T_OBJECT"
     },
     {
-        "value": "foo",
-        "type": "T_FUNCTION_ID"
+        "value": "class",
+        "type": "T_CLASS"
     },
     {
-        "value": "()",
-        "type": "T_EXPR",
-        "children": [
-            {
-                "value": "(",
-                "type": "T_PAREN_OPEN"
-            },
-            {
-                "value": ")",
-                "type": "T_PAREN_CLOSE"
-            }
-        ]
+        "value": "Book",
+        "type": "T_OBJECT_ID"
+    },
+    {
+        "value": ">",
+        "type": "T_EXTENDS"
+    },
+    {
+        "value": "BookBase",
+        "type": "T_OBJECT_ID"
+    },
+    {
+        "value": ">>",
+        "type": "T_IMPLEMENTS"
+    },
+    {
+        "value": "BookInterface, BookInterfaceOther",
+        "type": "T_OBJECT_ID"
     },
     {
         "value": ":",
@@ -34,12 +40,20 @@
         "type": "T_INDENT"
     },
     {
-        "value": "//",
-        "type": "T_COMMENT"
+        "value": "var",
+        "type": "T_VAR"
     },
     {
-        "value": "comment",
-        "type": "T_COMMENT_CONTENT"
+        "value": "id",
+        "type": "T_VAR_ID"
+    },
+    {
+        "value": "=",
+        "type": "T_ASSIGN"
+    },
+    {
+        "value": "1",
+        "type": "T_NUMBER"
     },
     {
         "value": "\n",

@@ -1,2 +1,2 @@
-fun foo():
-    //comment
+object class Book > BookBase >> BookInterface, BookInterfaceOther:
+    var id = 1

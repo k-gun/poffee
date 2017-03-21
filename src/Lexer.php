@@ -42,11 +42,11 @@ class Lexer extends LexerBase
     }
 
     public function scan($file, $line, $input, $inputs = null)
-    {pre($input, strlen($input));
+    {
         $this->file = $file;
         $this->line = $line;
         $pattern = '~(?:
-              (?:(^\s+)?(?<![\'"])(//)([^\r\n]*))          # comment
+              (?:(^\s+)?(?<![\'"])(//)([^\r\n]*))       # comment
             | (?:(declare)\s+([\'"].+[\'"]))            # declare
             | (?:(module)\s+([a-z_]\w*)\s*(:))          # module (namespace)
             | (?:(use)\s+(.+))                          # use

@@ -6,6 +6,7 @@ include 'const.php';
 abstract class LexerBase
 {
     function toAst(TokenCollection $tokens) { //return $tokens->toArray();
+        // $tokens = $this->checkComments($tokens);
         $tokens = $this->setObjectIds($tokens);
         $tokens = $this->setFunctionIds($tokens);
         $tokens = $this->setAssignIds($tokens);
@@ -13,35 +14,41 @@ abstract class LexerBase
         foreach ($tokens as $i => $token) {
             unset($token->tokens);
             if (!$token->type and isExpr($token->value)) {
-                $token->type = T_EXPR;
                 $children = $this->generateTokens(parseExpr($token->value));
                 if ($children) {
-                    $token->children = $this->toAst($children);
-                    // $array[$i]['children'] = $this->toAst($token->children); // or
-                    // $array = array_merge($array, $this->toAst(new TokenCollection($token->children))); // or
-                    // unset($token->children);
+                    $children = $this->toAst($children);
+                    $array = array_merge($array, $this->toAst(new TokenCollection($children)));
                 }
+                $token->skip = true;
             }
             // skip expressions, cos all should be parsed above already
-            // if ($token->type !== T_EXPR) {
-            //     $array[] = $token->toArray(true);
-            // }
-            $array[] = $token->toArray(true);
+            if (!$token->skip) {
+                $array[] = $token->toArray(true);
+            }
         }
         return $array;
+    }
+    function checkComments(TokenCollection $tokens) {
+        $tokens->reset();
+        while ($token = $tokens->next()) {
+            // drop empty comments
+            if ($token->type === T_COMMENT and $token->next->type !== T_COMMENT_CONTENT) {
+                $token->remove();
+            }
+        }
+        return $tokens;
     }
     function setObjectIds(TokenCollection $tokens) {
         $tokens->reset();
         while ($token = $tokens->next()) {
             if ($token->type === T_MODULE) {
                 $token->next->type = T_MODULE_ID;
-            } elseif ($token->type === T_CLASS or $token->type === T_INTERFACE or $token->type === T_TRAIT) {
-                $token->next->type = T_OBJECT_ID;
-            } elseif ($token->type === T_OBJECT_ID) {
+            } elseif ($token->type === T_OBJECT) {
                 $next = $tokens->next();
-                // bu while i yukari al // if type == T_OBJECT yap T_OBJECT_ID degil
                 while ($next and $next->type !== T_COLON) {
-                    if ($next->value === '>') {
+                    if ($next->type === T_CLASS or $next->type === T_INTERFACE or $next->type === T_TRAIT) {
+                        // pass
+                    } elseif ($next->value === '>') {
                         $next->type = T_EXTENDS;
                     } elseif ($next->value === '>>') {
                         $next->type = T_IMPLEMENTS;
