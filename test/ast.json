@@ -1,59 +1,19 @@
 [
     {
-        "value": "object",
-        "type": "T_OBJECT"
+        "value": "a1",
+        "type": "T_VAR_ID"
     },
     {
-        "value": "class",
-        "type": "T_CLASS"
+        "value": "**=",
+        "type": "T_OPR"
     },
     {
-        "value": "Book",
-        "type": "T_OBJECT_ID"
-    },
-    {
-        "value": ">",
-        "type": "T_EXTENDS"
-    },
-    {
-        "value": "BookBase",
-        "type": "T_OBJECT_ID"
-    },
-    {
-        "value": ">>",
-        "type": "T_IMPLEMENTS"
-    },
-    {
-        "value": "BookInterface, BookInterfaceOther",
-        "type": "T_OBJECT_ID"
+        "value": "11.5",
+        "type": "T_NUMBER"
     },
     {
         "value": ":",
         "type": "T_COLON"
-    },
-    {
-        "value": "\n",
-        "type": "T_EOL"
-    },
-    {
-        "value": "    ",
-        "type": "T_INDENT"
-    },
-    {
-        "value": "var",
-        "type": "T_VAR"
-    },
-    {
-        "value": "id",
-        "type": "T_VAR_ID"
-    },
-    {
-        "value": "=",
-        "type": "T_ASSIGN"
-    },
-    {
-        "value": "1",
-        "type": "T_NUMBER"
     },
     {
         "value": "\n",

@@ -11,22 +11,23 @@ abstract class LexerBase
         $tokens = $this->setFunctionIds($tokens);
         $tokens = $this->setAssignIds($tokens);
         $array = [];
-        foreach ($tokens as $i => $token) {
-            unset($token->tokens);
+        foreach ($tokens as $token) {
             if (!$token->type and isExpr($token->value)) {
                 $children = $this->generateTokens(parseExpr($token->value));
-                if ($children) {
-                    $children = $this->toAst($children);
-                    $array = array_merge($array, $this->toAst(new TokenCollection($children)));
+                if (!$children->isEmpty()) {
+                    $array = array_merge($array, $this->toAst($children));
                 }
                 $token->skip = true;
             }
+            unset($token->tokens);
             // skip expressions, cos all should be parsed above already
             if (!$token->skip) {
                 $array[] = $token->toArray(true);
             }
         }
-        return $array;
+        $tokens = new TokenCollection($array);
+        $tokens = $this->prepareIfElseStatements($tokens);
+        return $tokens->toArray(true);
     }
     function checkComments(TokenCollection $tokens) {
         $tokens->reset();
@@ -79,9 +80,34 @@ abstract class LexerBase
                 $token->next->type = T_VAR_ID;
             } elseif ($token->type === T_ASSIGN and !$token->prev->type) {
                 $token->prev->type = T_VAR_ID;
+            } elseif ($token->type === T_OPR and in_array($token->value, C_ASSIGNS)) {
+                // += -= *= **= /= .= %= &= |= ^= <<= >>=
+                $token->prev->type = T_VAR_ID;
             }
             if ($tokens->children) {
                 $token->children = $this->setAssignIds($token->children);
+            }
+        }
+        return $tokens;
+    }
+    function prepareIfElseStatements(TokenCollection $tokens) {
+        $tokens->reset();
+        while ($token = $tokens->next()) {
+            if ($token->type === T_IF or $token->type === T_ELSEIF) {
+                $next = $tokens->next();
+                while ($next and $next->type !== T_COLON) {
+                    if (!$next->type) {
+                        $nextNext = $next->next();
+                        if ($next->next and $next->next->type === T_PAREN_OPEN) {
+                            $next->type = T_FUNCTION_CALL;
+                        }
+                        prr($next->type, $next->value);
+                        // if ($next->type === T_FUNCTION_CALL) {
+                        //     prd($next->next->value);
+                        // }
+                    }
+                    $next = $tokens->next();
+                }
             }
         }
         return $tokens;
@@ -121,6 +147,19 @@ function parseExpr($expr) {
             case ' ':
                 if (!$depth) {
                     continue 2;
+                }
+                break;
+            // numbers
+            case isNumberChr($chr):
+                $buffer = $chr; $bufferIndex = $i;
+                while (isNumberChr($nextChr = ($expr[$i + 1] ?? '')) or $nextChr === '.') {
+                    $buffer .= $nextChr;
+                    $i++;
+                    // float?
+                    if (($expr[$i + 1] ?? '') === '.' and ($expr[$i + 2] ?? '') !== '=') {
+                        $buffer .= '.';
+                        $i++;
+                    }
                 }
                 break;
             // id's

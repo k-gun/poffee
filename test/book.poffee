@@ -1,2 +1,1 @@
-object class Book > BookBase >> BookInterface, BookInterfaceOther:
-    var id = 1
+a1 **= 11.5:

@@ -104,6 +104,7 @@ const C_PROTECTED = '@@';
 const C_INC = '++', C_DEC = '--';
 const C_PHP_OPEN = '<?php';
 const C_PHP_CLOSE = '?>';
+const C_ASSIGNS = ['.=', '+=', '-=', '/=', '*=', '**=', '%=', '&=', '|=', '^=', '<<=', '>>='];
 
 const KEYWORDS = ['__halt_compiler', 'abstract', 'and', 'array', 'as', 'break',
     'callable', 'case', 'catch', 'class', 'clone', 'const', 'continue', 'declare', 'default',
