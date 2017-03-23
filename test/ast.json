@@ -1,67 +1,51 @@
 [
     {
-        "value": "a",
-        "type": "T_VAR_ID"
+        "value": "for",
+        "type": "T_FOR"
     },
     {
-        "value": "+=",
-        "type": "T_OPR"
-    },
-    {
-        "value": "11.5",
-        "type": "T_NUMBER"
-    },
-    {
-        "value": ":",
-        "type": "T_COLON"
-    },
-    {
-        "value": "\n",
-        "type": "T_EOL"
-    },
-    {
-        "value": "if",
-        "type": "T_IF"
-    },
-    {
-        "value": "foo",
-        "type": "T_FUNCTION_CALL"
-    },
-    {
-        "value": "(",
-        "type": "T_PAREN_OPEN"
-    },
-    {
-        "value": "a",
+        "value": "i",
         "type": null
     },
     {
-        "value": ")",
-        "type": "T_PAREN_CLOSE"
+        "value": "=",
+        "type": "T_ASSIGN"
+    },
+    {
+        "value": "0",
+        "type": "T_NUMBER"
+    },
+    {
+        "value": ";",
+        "type": null
+    },
+    {
+        "value": "i",
+        "type": "T_VAR_ID"
     },
     {
         "value": "<",
         "type": "T_OPR"
     },
     {
-        "value": "100",
+        "value": "10",
         "type": "T_NUMBER"
+    },
+    {
+        "value": ";",
+        "type": null
+    },
+    {
+        "value": "i",
+        "type": "T_VAR_ID"
+    },
+    {
+        "value": "++",
+        "type": "T_OPR"
     },
     {
         "value": ":",
         "type": "T_COLON"
-    },
-    {
-        "value": "\n",
-        "type": "T_EOL"
-    },
-    {
-        "value": "    ",
-        "type": "T_INDENT"
-    },
-    {
-        "value": "break",
-        "type": "T_BREAK"
     },
     {
         "value": "\n",

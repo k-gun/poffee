@@ -94,14 +94,21 @@ class Lexer extends LexerBase
                    (?:\s*([a-z_]\w*))?                         # return type
                 )
               )
-            | (?:(^\s+)?(?:(if|elseif|for|switch|case)         # if, elseif, for, switch, case
-                \s+(.+)|(else))\s*                             # else
-              (:))                                             # colon
-            | (?:(^\s+)?(require|include(?:_once)?)\s*(.*))    # require, include ..
-            | (?:(^\s+)?(return)\s*(.*))                       # return
-            | (?:(^\s+)?(?:(var)\s+)?([a-z_]\w*)\s*(=)\s*(.+)) # assign
-            | (?:(^\s+)?([a-z_]\w*)\s*([\^\~<>!=%.&*/+-]=(?:\s*)(@)?)\s*(.+))   # operators
-            | (?:(^\s+)?(.+))                                  # all others
+            | (?:(^\s+)?(?:(if|elseif|switch|case)              # if, elseif, switch, case
+                \s+(.+)|(else))                                 # else
+                \s*(:)                                          # colon
+              )
+            | (?:(^\s+)?(for)\s+(?:(var)\s+)?(?:
+                | ([a-z_]\w*)\s+(in)\s+(.+)                     # for key in ..
+                | ([a-z_]\w*)\s*(,)\s*([a-z_]\w*)\s+(in)\s+(.+) # for key, value in ..
+                | (.*)\s*(;)\s*(.*)\s*(;)\s*(.*)                # for i = 0; i < 10; i++:
+               )
+               \s*(:))                                          # colon
+            | (?:(^\s+)?(require|include(?:_once)?)\s*(.*))     # require, include ..
+            | (?:(^\s+)?(return)\s*(.*))                        # return
+            | (?:(^\s+)?(?:(var)\s+)?([a-z_]\w*)\s*(=)\s*(.+))  # assign
+            | (?:(^\s+)?([a-z_]\w*)\s*([\^\~<>!=%.&*/+-]=(?:\s*)(@)?)\s*(.+)) # operators with assign
+            | (?:(^\s+)?(.+))                                   # all others
         )~ix';
         $matches = $this->getMatches($pattern, $input);
         pre($matches);

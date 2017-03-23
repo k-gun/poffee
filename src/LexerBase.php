@@ -15,7 +15,8 @@ abstract class LexerBase
             if (!$token->type and isExpr($token->value)) {
                 $children = $this->generateTokens(parseExpr($token->value));
                 if (!$children->isEmpty()) {
-                    $array = array_merge($array, $this->toAst($children));
+                    // $array = array_merge($array, $this->toAst($children));
+                    $array = array_merge($array, $children->toArray(true));
                 }
                 $token->skip = true;
             }
@@ -27,9 +28,9 @@ abstract class LexerBase
             }
         }
         $tokens = new TokenCollection($array);
-        $tokens = $this->setObjectIds($tokens);
-        $tokens = $this->setFunctionIds($tokens);
-        $tokens = $this->setAssignIds($tokens);
+        // $tokens = $this->setObjectIds($tokens);
+        // $tokens = $this->setFunctionIds($tokens);
+        // $tokens = $this->setAssignIds($tokens);
         $tokens = $this->prepareBlockStatements($tokens);
         return $tokens->toArray(true);
     }
@@ -107,7 +108,7 @@ abstract class LexerBase
     function prepareBlockStatements(TokenCollection $tokens) {
         $tokens->reset();
         while ($token = $tokens->next()) {
-            if ($token->type === T_IF or $token->type === T_ELSEIF or $token->type === T_SWITCH or $token->type === T_CASE) {
+            if ($token->type === T_IF or $token->type === T_ELSEIF or $token->type === T_SWITCH or $token->type === T_CASE or $token->type === T_FOR) {
                 $next = $tokens->next();
                 while ($next and $next->type !== T_COLON) {
                     if (!$next->type) {
