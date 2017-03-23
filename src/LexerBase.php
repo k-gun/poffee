@@ -122,7 +122,7 @@ abstract class LexerBase
                                 $next->type = T_VAR_ID;
                             }
                         }
-                        pre($next->value, $nextNext->value);
+                        pre($next->value);
                     }
                     $next = $tokens->next();
                 }

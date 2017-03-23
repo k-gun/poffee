@@ -307,6 +307,7 @@ class Lexer extends LexerBase
             case '=':           return T_ASSIGN;
             case '.':           return T_DOT;
             case ':':           return T_COLON;
+            case ';':           return T_SEMICOLON;
             case ',':           return T_COMMA;
             case '?':           return T_QUESTION;
             case '//':          return T_COMMENT;

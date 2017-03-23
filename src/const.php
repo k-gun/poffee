@@ -21,7 +21,7 @@ const T_COMMENT = 'T_COMMENT', T_COMMENT_CONTENT = 'T_COMMENT_CONTENT';
 
 const T_DOT = 'T_DOT';
 const T_COMMA = 'T_COMMA';
-const T_COLON = 'T_COLON';
+const T_COLON = 'T_COLON', T_SEMICOLON = 'T_SEMICOLON';
 const T_QUESTION = 'T_QUESTION';
 
 const T_OBJECT = 'T_OBJECT';
@@ -98,6 +98,7 @@ const T_INCLUDE = 'T_INCLUDE', T_INCLUDE_ONCE = 'T_INCLUDE_ONCE';
 const C_EOL = PHP_EOL;
 const C_ASSIGN = '=';
 const C_COLON = ':';
+const C_SEMICOLON = ';';
 const C_EXTENDS = '>';
 const C_IMPLEMENTS = '>>';
 const C_STATIC = 's';
