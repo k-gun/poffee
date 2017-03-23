@@ -7,9 +7,9 @@ abstract class LexerBase
 {
     function toAst(TokenCollection $tokens) { //return $tokens->toArray();
         // $tokens = $this->checkComments($tokens);
-        $tokens = $this->setObjectIds($tokens);
-        $tokens = $this->setFunctionIds($tokens);
-        $tokens = $this->setAssignIds($tokens);
+        // $tokens = $this->setObjectIds($tokens);
+        // $tokens = $this->setFunctionIds($tokens);
+        // $tokens = $this->setAssignIds($tokens);
         $array = [];
         foreach ($tokens as $token) {
             if (!$token->type and isExpr($token->value)) {
@@ -27,6 +27,9 @@ abstract class LexerBase
             }
         }
         $tokens = new TokenCollection($array);
+        $tokens = $this->setObjectIds($tokens);
+        $tokens = $this->setFunctionIds($tokens);
+        $tokens = $this->setAssignIds($tokens);
         $tokens = $this->prepareBlockStatements($tokens);
         return $tokens->toArray(true);
     }
@@ -92,13 +95,12 @@ abstract class LexerBase
                     $token->prev->type = T_VAR_ID;
                 }
             } elseif ($token->type === T_OPR) {
-                if ($token->prev && in_array($token->value, C_ASSIGNS)) {
-                    $token->prev->type = T_VAR_ID; // += -= *= **= /= .= %= &= |= ^= <<= >>=
+                $prev = $token->prev();
+                if (in_array($token->value, C_ASSIGNS)) {
+                    $prev->type = T_VAR_ID; // += -= *= **= /= .= %= &= |= ^= <<= >>=
                 }
             }
-            if ($tokens->children) {
-                $token->children = $this->setAssignIds($token->children);
-            }
+                // pre($tokens);
         }
         return $tokens;
     }
