@@ -92,7 +92,7 @@ abstract class LexerBase
                     $token->prev->type = T_VAR_ID;
                 }
             } elseif ($token->type === T_OPR) {
-                if (in_array($token->value, C_ASSIGNS)) {
+                if ($token->prev && in_array($token->value, C_ASSIGNS)) {
                     $token->prev->type = T_VAR_ID; // += -= *= **= /= .= %= &= |= ^= <<= >>=
                 }
             }
