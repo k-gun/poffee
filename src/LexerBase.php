@@ -78,8 +78,8 @@ abstract class LexerBase
             if ($token->type === T_CONST or $token->type === T_VAR) {
                 $next = $token->next();
                 if ($next->type === T_OPR) {
-                    if ($next->value === '@') $next->type = T_PRIVATE;
-                    elseif ($next->value === '@@') $next->type = T_PROTECTED;
+                    if ($next->value === C_PRIVATE) $next->type = T_PRIVATE;
+                    elseif ($next->value === C_PROTECTED) $next->type = T_PROTECTED;
                 } elseif (!$next->type) {
                     $next->type = ($token->type === T_CONST) ? T_CONST_ID : T_VAR_ID;
                 }
