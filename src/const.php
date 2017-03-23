@@ -43,6 +43,8 @@ const T_RETURN = 'T_RETURN';
 const T_IF = 'T_IF';
 const T_ELSE = 'T_ELSE';
 const T_ELSEIF = 'T_ELSEIF';
+const T_SWITCH = 'T_SWITCH';
+const T_CASE = 'T_CASE';
 const T_FOR = 'T_FOR';
 const T_BREAK = 'T_BREAK', T_CONTINUE = 'T_CONTINUE';
 const T_IS = 'T_IS';

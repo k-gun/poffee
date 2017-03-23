@@ -19,6 +19,7 @@ abstract class LexerBase
                 }
                 $token->skip = true;
             }
+            // no needed anymore
             unset($token->tokens);
             // skip expressions, cos all should be parsed above already
             if (!$token->skip) {
@@ -26,7 +27,7 @@ abstract class LexerBase
             }
         }
         $tokens = new TokenCollection($array);
-        $tokens = $this->prepareIfElseStatements($tokens);
+        $tokens = $this->prepareBlockStatements($tokens);
         return $tokens->toArray(true);
     }
     function checkComments(TokenCollection $tokens) {
@@ -74,15 +75,26 @@ abstract class LexerBase
     function setAssignIds(TokenCollection $tokens) {
         $tokens->reset();
         while ($token = $tokens->next()) {
-            if ($token->type === T_CONST) {
-                $token->next->type = T_CONST_ID;
-            } elseif ($token->type === T_VAR) {
-                $token->next->type = T_VAR_ID;
-            } elseif ($token->type === T_ASSIGN and !$token->prev->type) {
-                $token->prev->type = T_VAR_ID;
-            } elseif ($token->type === T_OPR and in_array($token->value, C_ASSIGNS)) {
-                // += -= *= **= /= .= %= &= |= ^= <<= >>=
-                $token->prev->type = T_VAR_ID;
+            if ($token->type === T_CONST or $token->type === T_VAR) {
+                $next = $token->next();
+                if ($next->type === T_OPR) {
+                    if ($next->value === '@') $next->type = T_PRIVATE;
+                    elseif ($next->value === '@@') $next->type = T_PROTECTED;
+                } elseif (!$next->type) {
+                    $next->type = ($token->type === T_CONST) ? T_CONST_ID : T_VAR_ID;
+                }
+            } elseif ($token->type === T_PRIVATE or $token->type === T_PROTECTED) {
+                if (!$token->next->type) {
+                    $token->next->type = ($token->prev->type === T_CONST) ? T_CONST_ID : T_VAR_ID;
+                }
+            } elseif ($token->type === T_ASSIGN) {
+                if (!$token->prev->type) {
+                    $token->prev->type = T_VAR_ID;
+                }
+            } elseif ($token->type === T_OPR) {
+                if (in_array($token->value, C_ASSIGNS)) {
+                    $token->prev->type = T_VAR_ID; // += -= *= **= /= .= %= &= |= ^= <<= >>=
+                }
             }
             if ($tokens->children) {
                 $token->children = $this->setAssignIds($token->children);
@@ -90,21 +102,24 @@ abstract class LexerBase
         }
         return $tokens;
     }
-    function prepareIfElseStatements(TokenCollection $tokens) {
+    function prepareBlockStatements(TokenCollection $tokens) {
         $tokens->reset();
         while ($token = $tokens->next()) {
-            if ($token->type === T_IF or $token->type === T_ELSEIF) {
+            if ($token->type === T_IF or $token->type === T_ELSEIF or $token->type === T_SWITCH or $token->type === T_CASE) {
                 $next = $tokens->next();
                 while ($next and $next->type !== T_COLON) {
                     if (!$next->type) {
                         $nextNext = $next->next();
-                        if ($next->next and $next->next->type === T_PAREN_OPEN) {
-                            $next->type = T_FUNCTION_CALL;
+                        if ($nextNext) {
+                            if ($nextNext->type === T_PAREN_OPEN) {
+                                $next->type = T_FUNCTION_CALL;
+                            } elseif ($nextNext->type === T_OPR) {
+                                $next->type = T_VAR_ID;
+                            } elseif ($nextNext->type === T_COLON) { // end
+                                $next->type = T_VAR_ID;
+                            }
                         }
-                        prr($next->type, $next->value);
-                        // if ($next->type === T_FUNCTION_CALL) {
-                        //     prd($next->next->value);
-                        // }
+                        pre($next->value, $nextNext->value);
                     }
                     $next = $tokens->next();
                 }
@@ -197,7 +212,7 @@ function parseExpr($expr) {
                     $i++;
                 }
                 break;
-            // operator's: ++ -- += -= *= **= <<= >>= <>
+            // operator's: ++ -- += -= *= **= <<= >>= <> @@
             case '+':
             case '-':
             case '*':
@@ -205,6 +220,7 @@ function parseExpr($expr) {
             case '>':
             case '&':
             case '|':
+            case '@':
                 $buffer = $chr; $bufferIndex = $i;
                 $nextChr = $expr[$i + 1] ?? '';
                 if ($nextChr === '>') {

@@ -1,19 +1,31 @@
 [
     {
-        "value": "a1",
-        "type": "T_VAR_ID"
+        "value": "    ",
+        "type": "T_INDENT"
     },
     {
-        "value": "**=",
-        "type": "T_OPR"
+        "value": "const",
+        "type": "T_CONST"
     },
     {
-        "value": "11.5",
-        "type": "T_NUMBER"
+        "value": "a",
+        "type": "T_CONST_ID"
     },
     {
-        "value": ":",
-        "type": "T_COLON"
+        "value": "=",
+        "type": "T_ASSIGN"
+    },
+    {
+        "value": "b",
+        "type": null
+    },
+    {
+        "value": "(",
+        "type": "T_PAREN_OPEN"
+    },
+    {
+        "value": ")",
+        "type": "T_PAREN_CLOSE"
     },
     {
         "value": "\n",

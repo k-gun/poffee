@@ -45,62 +45,63 @@ class Lexer extends LexerBase
     {
         $this->file = $file;
         $this->line = $line;
-        $pattern = '~(?:
-              (?:(^\s+)?(?<![\'"])(//)([^\r\n]*))       # comment
-            | (?:(declare)\s+([\'"].+[\'"]))            # declare
-            | (?:(module)\s+([a-z_]\w*)\s*(:))          # module (namespace)
-            | (?:(use)\s+(.+))                          # use
-            | (?:(const)\s+([a-z_]\w*)\s*(=)\s*(.+))    # const
-            | (?:                                       # objects
+        $pattern = '~(?<![\'"])(?:
+              (?:(^\s+)?(//)([^\r\n]*))                        # comment
+            | (?:(declare)\s+([\'"].+[\'"]))                   # declare
+            | (?:(module)\s+([a-z_]\w*)\s*(:))                 # module (namespace)
+            | (?:(use)\s+(.+))                                 # use
+            | (?:(const)\s+([a-z_]\w*)\s*(=)\s*(.+))           # const
+            | (?:                                              # objects
                 (object)
-                (?:\s+(abstract|final)\s*)?             # descriptor
+                (?:\s+(abstract|final)\s*)?                    # descriptor
                 (?:\s+(class|interface|trait)\s+([a-z_]\w*))   # class, interface, trait
-                (?:\s*(>)\s+([a-z_]\w*))?               # extends
-                (?:\s*(>>)\s+([a-z_](?:[\w,\s]*)))?     # implements
-              (:))
-            | (?:(^\s+)                                 # const
+                (?:\s*(>)\s+([a-z_]\w*))?                      # extends
+                (?:\s*(>>)\s+([a-z_](?:[\w,\s]*)))?            # implements
+              (:))                                             # colon
+            | (?:(^\s+)                                        # const
                 (?:(const)
-                    (?:\s+(@|@@))?                      # private, protected
-                       \s+([a-z_]\w*)                   # name
-                    (?:\s*(=)\s*(.+))                   # value
+                    (?:\s+(@|@@))?                             # private, protected
+                       \s+([a-z_]\w*)                          # name
+                    (?:\s*(=)\s*(.+))                          # value
                 )
               )
-            | (?:(^\s+)                                 # property
+            | (?:(^\s+)                                        # property
                 (?:(var)
-                    (?:\s+(@|@@))?                      # private, protected
-                    (?:\s+(static))?                    # static
-                       \s+([a-z_]\w*)                   # name
-                    (?:\s*(=)\s*(.+))?                  # value
+                    (?:\s+(@|@@))?                             # private, protected
+                    (?:\s+(static))?                           # static
+                       \s+([a-z_]\w*)                          # name
+                    (?:\s*(=)\s*(.+))?                         # value
                 )
               )
-            | (?:(^\s+)                                 # method
+            | (?:(^\s+)                                        # method
                 (?:(fun)
-                    (?:\s+(@|@@))?                      # private, protected
-                    (?:\s*(final|abstract|static)?      # final or abstract, static
-                       \s*(static|final|abstract)?      # static, final or abstract
+                    (?:\s+(@|@@))?                             # private, protected
+                    (?:\s*(final|abstract|static)?             # final or abstract, static
+                       \s*(static|final|abstract)?             # static, final or abstract
                     )?
-                       \s+([a-z_]\w*)                   # name
-                    (?:\s*(\(.*\)))                     # arguments
+                       \s+([a-z_]\w*)                          # name
+                    (?:\s*(\(.*\)))                            # arguments
                 )
-                (:)                                     # colon
-                (?:\s*([a-z_]\w*))?                     # return type
+                (:)                                            # colon
+                (?:\s*([a-z_]\w*))?                            # return type
               )
-            | (?:(^\s+)?                                # function
-                (?:([a-z_]\w*)\s*(=)\s*)?               # anon name
+            | (?:(^\s+)?                                       # function
+                (?:([a-z_]\w*)\s*(=)\s*)?                      # anon name
                 (?:(fun)
-                   (?:\s+([a-z_]\w*))?                  # real name
-                   (?:\s*(\(.*\)))                      # arguments
-                   (:)                                  # colon
-                   (?:\s*([a-z_]\w*))?                  # return type
+                   (?:\s+([a-z_]\w*))?                         # real name
+                   (?:\s*(\(.*\)))                             # arguments
+                   (:)                                         # colon
+                   (?:\s*([a-z_]\w*))?                         # return type
                 )
               )
-            | (?:(^\s+)?(?:(if|elseif|for|ise?(?:\s*(?:not)?)) # if, .. for, is ..
-                \s+(.+)|(else))\s*(:))
-            | (?:(^\s+)?(require|include(?:_once)?)\s*(.*))                # require, include ..
-            | (?:(^\s+)?(return)\s*(.*))                # return
-            | (?:(^\s+)?(?:(var)\s+)?([a-z_]\w*)\s*(=)\s*(.+))       # assign
-            | (?:(^\s+)?([a-z_]\w*)\s*([\^\~<>!=%.&*/+-]=(?:\s*)(@)?)\s*(.+))       # operators
-            #| (?:(^\s+)?(.+))
+            | (?:(^\s+)?(?:(if|elseif|for|switch|case)         # if, elseif, for, switch, case
+                \s+(.+)|(else))\s*                             # else
+              (:))                                             # colon
+            | (?:(^\s+)?(require|include(?:_once)?)\s*(.*))    # require, include ..
+            | (?:(^\s+)?(return)\s*(.*))                       # return
+            | (?:(^\s+)?(?:(var)\s+)?([a-z_]\w*)\s*(=)\s*(.+)) # assign
+            | (?:(^\s+)?([a-z_]\w*)\s*([\^\~<>!=%.&*/+-]=(?:\s*)(@)?)\s*(.+))   # operators
+            | (?:(^\s+)?(.+))                                  # all others
         )~ix';
         $matches = $this->getMatches($pattern, $input);
         pre($matches);
@@ -327,6 +328,7 @@ class Lexer extends LexerBase
             case 'null': return T_NULL;
             case 'true': case 'false': return T_BOOL;
             case 'if': return T_IF; case 'else': return T_ELSE; case 'elseif': return T_ELSEIF;
+            case 'switch': return T_SWITCH; case 'case': return T_CASE;
             case 'for': return T_FOR; case 'in': return T_IN;
             case 'break': return T_BREAK; case 'continue': return T_CONTINUE;
             case 'is': return T_IS; case 'ise': return T_ISE; case 'not': return T_NOT;
