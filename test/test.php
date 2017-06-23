@@ -7,7 +7,7 @@ $writer = new Poffee\FileWriter('book.php');
 $parser = new Poffee\Parser();
 $tokens = $parser->parse($reader);
 // $writer->write($tokens);
-prf($tokens);
+// prf($tokens);
 
 
 // pre(defined("T_SPACE"));

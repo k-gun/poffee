@@ -31,6 +31,7 @@ abstract class LexerBase
         // $tokens = $this->setObjectIds($tokens);
         // $tokens = $this->setFunctionIds($tokens);
         // $tokens = $this->setAssignIds($tokens);
+        // burdayim, yukarisi calisiyor
         $tokens = $this->prepareBlockStatements($tokens);
         return $tokens->toArray(true);
     }
@@ -122,6 +123,7 @@ abstract class LexerBase
                                 $next->type = T_VAR_ID;
                             }
                         }
+                        // burdayim
                         pre($next->value);
                     }
                     $next = $tokens->next();

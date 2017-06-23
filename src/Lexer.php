@@ -111,7 +111,7 @@ class Lexer extends LexerBase
             | (?:(^\s+)?(.+))                                   # all others
         )~ix';
         $matches = $this->getMatches($pattern, $input);
-        pre($matches);
+        pre(json_encode($matches));
         return $this->generateTokens($matches);
     }
 
@@ -143,10 +143,15 @@ class Lexer extends LexerBase
             // if ($type === T_INDENT) $token['size'] = $length / self::$indentLength;
             $tokens[] = $token;
         }
+
         $tokens = new TokenCollection($tokens);
         return $tokens;
 
-        if (!$tokens->isEmpty()) {
+        /***********************************************************************************
+         ***********************************************************************************
+         ***********************************************************************************/
+
+        /* if (!$tokens->isEmpty()) {
             while ($token = $tokens->next()) {
                 $prev = $token->prev(); $next = $token->next();
                 switch ($token->type) {
@@ -293,7 +298,7 @@ class Lexer extends LexerBase
                 // if($next) pre($next->type,$next->value);
                 // if no type error?
             }
-        }
+        } */
         return $tokens;
     }
 
